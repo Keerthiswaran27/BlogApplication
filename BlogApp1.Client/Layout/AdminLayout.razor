@@ -1,0 +1,122 @@
+﻿@inherits LayoutComponentBase
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
+<MudLayout>
+    <MudAppBar Fixed="true" Class="app-bar-css">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+
+        <MudText Typo="Typo.h4" Style="font-family:'Baskerville Old Face'; font-weight:500">MiddleMan</MudText>
+        <MudSpacer />
+        <MudText Typo="Typo.h6">Admin</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Notifications" Class="icon-color" Href="/admin/notifications"></MudIconButton>
+        <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Class="icon-color" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+            <MudMenuItem Href="/reader/profile">Profile</MudMenuItem>
+            <MudMenuItem Href="/logout">Logout</MudMenuItem>
+        </MudMenu>
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" Variant="DrawerVariant.Mini" Elevation="1" ClipMode="DrawerClipMode.Always" MiniVariantWidth="56px" Width="180px" class="drawer-css">
+        <MudNavMenu Class="mt-5">
+            <MudNavLink Href="/admin" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All" Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Dashboard</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/admin/Users" Icon="@Icons.Material.Filled.SupervisedUserCircle" Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>User Panel</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/admin/Blogs" Icon="@Icons.Material.Filled.MenuBook" Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Blog Panel</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/admin/comments" Icon="@Icons.Material.Filled.Comment" Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Comment Panel</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/admin/analytics" Icon="@Icons.Material.Filled.BarChart" Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Analytics Panel</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/admin/settings" Icon="@Icons.Material.Filled.Settings" Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Site Settings</span>
+                }
+            </MudNavLink>
+            <MudNavLink Href="/admin/message" Icon="@Icons.Material.Filled.Message" Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Message Center</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/reader/logout" Icon="@Icons.Material.Filled.Logout" Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Logout</span>
+                }
+            </MudNavLink>
+
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+@code {
+    bool _drawerOpen = true;
+    private string role = "Reader";
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}
+
+<style>
+    .app-bar-css {
+        background: linear-gradient(135deg,#C7D2FE,#E9D5FF);
+        color: black;
+        box-shadow:0
+    }
+
+    .mud-drawer {
+        color: black;
+    }
+
+    .mud-icon-root {
+        color: black;
+    }
+
+    .custom-icon .mud-icon-root {
+        color: #0a2340 !important;
+    }
+
+    .mud-nav-link.active {
+        color: #24609c !important;
+    }
+
+    .drawer-css {
+        /* background-color: #EDE9FE; */
+        /* background: linear-gradient(180deg, #EEF2FF, #E0E7FF); */
+        /* background: linear-gradient( to top, #EDE9FE, #FBFAFF ); */
+        background: linear-gradient( to top, #E9D5FF, #FBFAFF );
+    }
+</style>

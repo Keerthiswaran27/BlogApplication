@@ -1,0 +1,40 @@
+﻿@page "/sample"
+@using BlogApp1.Client.Services
+@inject AdminService AdminService
+@using BlogApp1.Shared
+
+<MudCard Style="max-width:400px; padding:16px;">
+
+    @*
+      Simulate the loading state with MudSkeleton.
+      Wrap it in a MudItem or similar structure to maintain layout.
+    *@
+    <MudGrid Spacing="2" Justify="Justify.FlexStart" Style="width:100%;">
+
+        @* Column for the Circle (Avatar/Icon) *@
+        <MudItem xs="2">
+            <MudSkeleton SkeletonType="SkeletonType.Circle" Width="48px" Height="48px" />
+        </MudItem>
+
+        @* Column for the Text Lines *@
+        <MudItem xs="10">
+            <MudStack Spacing="1">
+                @* First Line (Title/Primary Text) - Wider, slightly shorter *@
+                <MudSkeleton SkeletonType="SkeletonType.Text" Width="70%" Height="18px" />
+
+                @* Second Line (Subtitle/Secondary Text) - Shorter, slightly taller *@
+                <MudSkeleton SkeletonType="SkeletonType.Text" Width="50%" Height="16px" />
+
+                @* Third Line (Description/Tertiary Text) - Full width, shorter *@
+                <MudSkeleton SkeletonType="SkeletonType.Text" Width="90%" Height="14px" />
+            </MudStack>
+        </MudItem>
+
+    </MudGrid>
+
+</MudCard>
+
+@code {
+    // No C# code is strictly required for the skeleton display itself,
+    // but you would wrap this in an @if (!dataLoaded) {} block in a real application.
+}

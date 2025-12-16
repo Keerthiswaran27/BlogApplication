@@ -1,0 +1,349 @@
+﻿@page "/admin/users"
+@using BlogApp1.Client.Services
+@inject AdminService AdminService
+@using MudBlazor
+@inject NavigationManager NavigationManager
+@using BlogApp1.Shared
+@layout AdminLayout
+@inject IDialogService DialogService
+@using BlogApp1.Client.Components.Auth
+
+<MudContainer Style="margin:10px;margin-bottom:40px;">
+    <MudText Typo="Typo.h2" Align="Align.Center" style="font-weight:600;color:#272145;margin-bottom:40px;">USER CONTROL PANEL</MudText>
+    <MudPaper Style="margin:10px;border-radius:16px;background-color:#F5F3FF;">
+        <MudGrid>
+            <MudItem md="5" Style="padding-top:10px;padding-bottom:10px;">
+                <MudTextField @bind-Value="searchTerm"
+                              Placeholder="Search users..."
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              Immediate="true"
+                              Class="mx-3" />
+            </MudItem>
+            <MudItem md="7" Style="padding-top:10px;padding-bottom:10px;">
+                <MudGrid>
+                    <MudItem md="4">
+                        <MudSelect T="string" @bind-Value="selectedRole">
+                            <MudSelectItem Value="@("")">All Roles</MudSelectItem>
+                            <MudSelectItem Value="@("reader")">Reader</MudSelectItem>
+                            <MudSelectItem Value="@("author")">Author</MudSelectItem>
+                            <MudSelectItem Value="@("editor")">Editor</MudSelectItem>
+                            <MudSelectItem Value="@("admin")">Admin</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem md="4">
+                        <MudSelect T="string" @bind-Value="_dateRange" Placeholder="Date Range" Class="w-56">
+                            <MudSelectItem Value="@("")">All Days</MudSelectItem>
+                            <MudSelectItem Value="@("3")">Last 3 Days</MudSelectItem>
+                            <MudSelectItem Value="@("7")">Last 7 Days</MudSelectItem>
+                            <MudSelectItem Value="@("30")">Last 1 Month</MudSelectItem>
+                            <MudSelectItem Value="@("180")">Last 6 Months</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem md="4" Style="display:flex;justify-content:center;">
+                        <MudButton style="border-radius:16px;background-color:#b6c4fc;color:#313e73;border:2px solid #6272b3 !important;"
+                                   Size="Size.Small"
+                                   Variant="Variant.Filled"
+                                   OnClick="@OpenAddUserDialog">
+                            <MudIcon Icon="@Icons.Material.Filled.Add" /> Add User
+                        </MudButton>
+
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+<MudPaper Class="stats-cards" Elevation="4" Style="height:80%">
+    @if (isLoading)
+    {
+        
+            <MudPaper Class="pa-4" Elevation="2" Style="border-radius:16px;">
+                @for (int i = 0; i < 5; i++)
+                {
+                    <MudPaper Class="pa-3 mb-3" Elevation="1" Style="display:flex; align-items:center; gap:16px; border-radius:12px;">
+                        <!-- Avatar -->
+                        <MudSkeleton Width="40px" Height="40px" Variant="Variant.Circular" />
+
+                        <!-- Name and Details -->
+                        <div style="flex:1;">
+                            <MudSkeleton Width="60%" Height="20px" Class="mb-1" />
+                            <MudSkeleton Width="40%" Height="16px" />
+                        </div>
+
+                        <!-- Right-side Action / Status -->
+                        <div style="width:100px;">
+                            <MudSkeleton Width="80px" Height="20px" />
+                        </div>
+                    </MudPaper>
+                }
+            </MudPaper>
+    }
+    else
+    {
+        <MudPaper Class="pa-4" Elevation="2" Style="border-radius:16px;">
+            <MudPaper Class="pa-3 mb-3" Elevation="1"
+                      Style="display:flex; align-items:center; justify-content:space-between; border-radius:12px; gap:16px; background-color:#F5F3FF;">
+
+                <!-- USERNAME -->
+                <div style="width:13%; display:flex; align-items:center; gap:8px;" >
+                    <MudText Style="color:272145;font-weight:500">USERNAME</MudText> 
+                </div>
+
+                <!-- EMAIL -->
+                <div style="width:17%; text-align:center;">
+                    <MudText Style="color:272145;font-weight:500">EMAIL</MudText>
+                </div>
+
+                <!-- ROLE -->
+                <div style="width:11%; text-align:center;">
+                    <MudText Style="color:272145;font-weight:500">ROLES</MudText>
+
+                </div>
+
+                <!-- FOLLOWERS -->
+                <div style="width:7%; text-align:center;">
+                    <MudText Style="color:272145;font-weight:500">FOLLOWERS</MudText>
+                </div>
+
+                <!-- FOLLOWING -->
+                <div style="width:7%; text-align:center;">
+                    <MudText Style="color:272145;font-weight:500">FOLLOWING</MudText>
+                </div>
+
+                <!-- JOINED ON -->
+                <div style="width:15%; text-align:center;">
+                    <MudText Style="color:272145;font-weight:500">JOINED ON</MudText>
+                    
+                </div>
+
+                <!-- STATUS -->
+                <div style="width:10%; text-align:center;">
+                    <MudText Style="color:272145;font-weight:500">STATUS</MudText>
+
+                </div>
+
+                <!-- ACTION -->
+                <div style="width:12%; text-align:center;">
+                    <MudText Style="color:272145;font-weight:500">ACTION</MudText>
+
+                </div>
+            </MudPaper>
+            <MudContainer Style="padding:0;overflow-y:auto;height:500px;">
+                @foreach (var user in filteredUsers)
+                {
+                    <MudPaper Class="pa-3 mb-3" Elevation="1"
+                              Style="cursor:pointer;display:flex; align-items:center; justify-content:space-between; border-radius:12px; gap:16px; background-color:#F9FAFB;" @onclick="@(() => OpenUserView(user.UserId))">
+
+                        <!-- USERNAME -->
+                        <div style="width:13%; display:flex; align-items:center; gap:8px;">
+                            @if (string.IsNullOrEmpty(user.AvatarUrl))
+                            {
+                                <MudAvatar Size="Size.Small" Class="mr-1" Style="background-color:#3f51b5;color:white;">
+                                    @user.FullName.First()
+                                </MudAvatar>
+                            }
+                            else
+                            {
+                                <MudAvatar Size="Size.Small">
+                                    <MudImage Src="@user.AvatarUrl" />
+                                </MudAvatar>
+                            }
+                            <span style="font-weight:600;">@user.FullName</span>
+                        </div>
+
+                        <!-- EMAIL -->
+                        <div style="width:17%; text-align:start;">@user.Email</div>
+
+                        <!-- ROLE -->
+                        <div style="width:11%; text-align:center;">
+                            @foreach (var c in user.Roles)
+                            {
+                                <MudText>@c</MudText>
+                            }
+                        </div>
+
+                        <!-- FOLLOWERS -->
+                        <div style="width:7%; text-align:center;">@(user.Follower?.Count() ?? 0)</div>
+
+                        <!-- FOLLOWING -->
+                        <div style="width:7%; text-align:center;">@(user.Following?.Count() ?? 0)</div>
+
+                        <!-- JOINED ON -->
+                        <div style="width:15%; text-align:center;">@user.CreatedAt?.Date.ToString("dd MMM yyyy")</div>
+
+                        <!-- STATUS -->
+                        <div style="width:10%; text-align:center;">
+                            <MudChip T="bool" Color="@(user.IsActive? Color.Success: Color.Error)" Variant="Variant.Outlined">
+                                @(user.IsActive ? "Active" : "Inactive")
+                            </MudChip>
+                        </div>
+
+                        <!-- ACTION -->
+                        <div style="width:12%; text-align:center;">
+                            <MudButton style="color:#3f51b5;border-radius:16px;" Size="Size.Small" Variant="Variant.Outlined" OnClick="@(() => EditUser(user.UserId))">Edit</MudButton>
+                            <MudButton Class="ml-1" Color="Color.Error" Style="border-radius:16px;" Size="Size.Small" Variant="Variant.Outlined" OnClick="@(() => ConfirmDeleteUser(user.Id))">Delete</MudButton>
+                        </div>
+                    </MudPaper>
+                }
+            </MudContainer>
+        </MudPaper>
+    }
+</MudPaper>
+
+
+
+@code {
+    private List<BlogUserDto> users = new();
+    private BlogUserDto editingUser = new();
+    private Guid deleteUserId;
+    private string searchTerm = "";
+    private string selectedRole = "";
+    private bool showCards = false;
+    private bool isLoading = true;
+    private bool isDialogOpen = false;
+    private bool isDeleteConfirmOpen = false;
+    private string dialogTitle = "";
+    private string _dateRange = "";
+    protected override async Task OnInitializedAsync() => await LoadUsersAsync();
+
+    private async Task LoadUsersAsync()
+    {
+        isLoading = true;
+        users = await AdminService.GetAllUsersAsync();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private IEnumerable<BlogUserDto> filteredUsers
+    {
+        get
+        {
+            var query = users.AsEnumerable();
+
+            // 🔍 Search filter
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(u =>
+                    (u.FullName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (u.Username?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (u.Email?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            // 🧩 Role filter
+            if (!string.IsNullOrWhiteSpace(selectedRole))
+            {
+                query = query.Where(u =>
+                    u.Roles != null && u.Roles.Contains(selectedRole, StringComparer.OrdinalIgnoreCase));
+            }
+
+            // ⏰ Date range filter
+            if (!string.IsNullOrWhiteSpace(_dateRange))
+            {
+                if (int.TryParse(_dateRange, out int days))
+                {
+                    var cutoff = DateTime.Now.AddDays(-days);
+                    query = query.Where(u => u.CreatedAt >= cutoff);
+                }
+            }
+            else
+            {
+
+            }
+
+            return query.OrderByDescending(u => u.CreatedAt);
+        }
+    }
+
+    private async Task OpenAddUserDialog()
+    {
+        var parameters = new DialogParameters();
+        var options = new DialogOptions()
+        {
+            MaxWidth = MaxWidth.Medium,
+            BackdropClick = true,
+            CloseButton = true,
+            BackgroundClass = "dialog-backdrop-blur"
+        };
+
+        DialogService.Show<AddUserDialog>("", parameters, options);
+        await LoadUsersAsync();
+
+    }
+    private void OpenUserView(Guid uuid)
+    {
+        NavigationManager.NavigateTo($"admin/userview/{uuid}");
+    }
+    private void EditUser(Guid uuid)
+    {
+        NavigationManager.NavigateTo($"/admin/profileedit/{uuid}");
+    }
+
+    private void EditUser(BlogUserDto user)
+    {
+        
+    }
+
+    private async Task SaveUserAsync()
+    {
+        
+    }
+
+    private void CloseDialog() => isDialogOpen = false;
+
+    private void ConfirmDeleteUser(Guid id)
+    {
+        deleteUserId = id;
+        isDeleteConfirmOpen = true;
+    }
+
+    private async Task DeleteUserAsync()
+    {
+        await AdminService.DeleteUserAsync(deleteUserId);
+        isDeleteConfirmOpen = false;
+        await LoadUsersAsync();
+    }
+}
+<style>
+    body{
+        background-color:#FBFAFF;
+    }
+
+    .stats-cards {
+        margin:15px;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+    }
+
+
+    .mud-table-container {
+        color: #1E1E2E !important; 
+    }
+
+    .mud-table .mud-table-body .mud-table-row:nth-of-type(odd) {
+        background-color: #F5F3FF !important;
+    }
+
+    .mud-table .mud-table-body .mud-table-row:nth-of-type(even) {
+        /* Assuming the default background is fine, or set it explicitly if needed */
+    }
+
+    .mud-table-row:hover {
+        background-color: #FBFAFF !important;
+    }
+
+    .mud-table .mud-table-body .mud-table-row:nth-of-type(odd):hover {
+        background-color: #F5F3FF !important;
+    }
+    .mud-input-control{
+        max-width:100%;
+    }
+
+    .mud-skeleton {
+        --mud-skeleton-animation-duration: 1.75s;
+        --mud-skeleton-start-color: #e8eaf6;
+        --mud-skeleton-end-color: #c5cae9;
+    }
+</style>

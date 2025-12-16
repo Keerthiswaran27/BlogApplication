@@ -1,0 +1,169 @@
+﻿@page "/chat"
+@layout AuthorLayour 
+@inject RAGHttpService RAGService
+@using MudBlazor
+@using BlogApp1.Shared
+@using System.Text.RegularExpressions 
+@inject NavigationManager NavigationManager
+<MudContainer MaxWidth="MaxWidth.Large" Class="my-8">
+    @* <MudText Typo="Typo.h3" Class="mb-6 text-center">🤖 RAG Knowledge Base Chatbot</MudText> *@
+    
+    <!-- Chat Messages -->
+    @if(chatstarted)
+    {
+        <MudPaper Class="chat-container pa-4 mb-6" Elevation="4" Style="height: 80vh; border-radius:16px;        border:1px solid black;
+">
+            <MudContainer Style="overflow-y: auto;height:90%;padding:10px;">
+                @foreach (var msg in messages)
+                {
+                    <div class="@(msg.IsUser ? "d-flex justify-end mb-4" : "d-flex justify-start mb-4")">
+                        <MudPaper Class="@(msg.IsUser ? "user-message pa-4" : "bot-message pa-4")" 
+                                    Elevation="2" Width="75%" MaxWidth="800px">
+                    
+                            <!-- ✅ FIXED: MudText instead of MudMarkdown -->
+                            <MudText Typo="Typo.body1" Class="whitespace-pre-wrap">@((MarkupString)FormatMessage(msg.Content))</MudText>
+                    
+                            @if (!msg.IsUser && msg.Sources?.Any() == true)
+                            {
+                                <MudDivider Class="my-3"/>
+                                <MudChipSet T="string" Row="true">
+                                    @foreach (var source in msg.Sources.Take(4))
+                                    {
+                                        <MudChip Variant="Variant.Outlined" Style="@($"color:{Colors.Indigo.Darken1};")" Size="Size.Small" OnClick="()=>GoToBlog(source.Url)">
+                                            <strong>[@source.SourceNumber]</strong>@(" "+@source.Title)
+                                            @* <small>(Score: @source.Score.ToString("F3"))</small> *@
+                                        </MudChip>
+                                    }
+                                </MudChipSet>
+                            }
+                        </MudPaper>
+                    </div>
+                }
+            </MudContainer>
+            <div class="d-flex gap-3" style="border:1px solid black;border-radius:16px;padding:10px;">
+                <MudTextField @bind-Value="question"
+                              Placeholder="Next question, answers coming right away...."
+                              Variant="Variant.Text"
+                              Immediate="true"
+                              Class="flex-grow-1 mb-1" />
+                <MudButton Variant="Variant.Filled"
+                           style="background-color:black; color:white;border-radius:16px;"
+                           OnClick="SendQuestion"
+                           Size="Size.Large">send
+                </MudButton>
+            </div>
+        </MudPaper>
+
+    }
+    else
+    {
+        <MudContainer class="intro-container">
+            <MudStack Spacing="7">
+                 <MudText Typo="Typo.h2" Align="Align.Center">ASK ME ANYTHING</MudText>
+                 <MudText>  </MudText>
+                <div class="d-flex gap-3" style="width:800px;border:1px solid black;border-radius:16px;padding:10px;">
+                <MudTextField @bind-Value="question"
+                              Placeholder="Ask me about the topic you are interested in...."
+                              Variant="Variant.Text"
+                              Class="flex-grow-1 mb-1" />
+                <MudButton Variant="Variant.Filled"
+                           style="background-color:black; color:white;border-radius:16px;"
+                           OnClick="SendQuestion"
+                           Size="Size.Large">
+                    chat
+                </MudButton>
+            </div>
+            </MudStack>
+            
+        </MudContainer>
+    }
+
+
+</MudContainer>
+
+@code {
+    private string question = "";
+    private List<ChatMessage> messages = new();
+    private bool chatstarted = false;
+    private async Task SendQuestion()
+    {
+        if (string.IsNullOrWhiteSpace(question)) return;
+
+        var userMsg = new ChatMessage { Content = question, IsUser = true };
+        messages.Add(userMsg);
+        var currentQuestion = question;
+        chatstarted = true;
+        question = "";
+        StateHasChanged();
+
+        try
+        {
+            var response = await RAGService.ChatAsync(currentQuestion);
+            var botMsg = new ChatMessage 
+            { 
+                Content = response.Answer, 
+                IsUser = false, 
+                Sources = response.Sources 
+            };
+            messages.Add(botMsg);
+        }
+        catch (Exception ex)
+        {
+            messages.Add(new ChatMessage 
+            { 
+                Content = $"❌ Error: {ex.Message}", 
+                IsUser = false 
+            });
+        }
+        
+        StateHasChanged();
+    }
+    private void GoToBlog(string url)
+    {
+        NavigationManager.NavigateTo(url, true);
+    }
+    // ✅ Basic markdown formatting (bold, code blocks)
+    private string FormatMessage(string content)
+    {
+        // Bold: **text** → <strong>text</strong>
+        content = Regex.Replace(content, @"\*\*(.*?)\*\*", "<strong>$1</strong>");
+        
+        // Code: `code` → <code>code</code>
+        content = Regex.Replace(content, @"`(.*?)`", "<code>$1</code>");
+        
+        // Code blocks: `````` → <pre><code>code</code></pre>
+        content = Regex.Replace(content, @"``````", "<pre><code>$1</code></pre>", RegexOptions.Singleline);
+        
+        // Line breaks
+        content = content.Replace("\n", "<br/>");
+        
+        return content;
+    }
+
+    public class ChatMessage
+    {
+        public string Content { get; set; } = "";
+        public bool IsUser { get; set; }
+        public List<Source> Sources { get; set; } = new();
+    }
+}
+<style>
+    body {
+        background: #FBFAFF;
+    }
+    .user-message {
+    background: linear-gradient(135deg,#C7D2FE,#E9D5FF) !important;
+    color: black !important;
+    border-radius: 18px !important;
+}   
+    .intro-container{
+        height:80vh;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        background-color:white;
+        box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+        border-radius:16px;
+        border:1px solid black;
+    }
+</style>

@@ -1,0 +1,269 @@
+﻿@page "/editor"
+@layout EditorLayout
+@using BlogApp1.Shared.EditorModels
+@using MudBlazor
+@inject EditorService EditorService
+@inject NavigationManager Navigation
+
+<PageTitle>Editor Dashboard</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudGrid Spacing="4" Justify="Justify.Center">
+        
+        <!-- Summary Cards -->
+        <MudItem xs="12">
+            <MudGrid Spacing="3">
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Class="card-animation" Elevation="4">
+                        <MudCardContent Class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.HourglassEmpty" Color="Color.Warning" Class="mr-4" Style="font-size: 3rem;" />
+                            <div>
+                                <MudText Typo="Typo.h5" Class="font-weight-bold">@(Stats?.PendingCount ?? 0)</MudText>
+                                <MudText Typo="Typo.body2">Pending Blogs</MudText>
+                            </div>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Class="card-animation" Elevation="4">
+                        <MudCardContent Class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Class="mr-4" Style="font-size: 3rem;" />
+                            <div>
+                                <MudText Typo="Typo.h5" Class="font-weight-bold">@(Stats?.ApprovedCount ?? 0)</MudText>
+                                <MudText Typo="Typo.body2">Approved Blogs</MudText>
+                            </div>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Class="card-animation" Elevation="4">
+                        <MudCardContent Class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Class="mr-4" Style="font-size: 3rem;" />
+                            <div>
+                                <MudText Typo="Typo.h5" Class="font-weight-bold">@(Stats?.RejectedCount ?? 0)</MudText>
+                                <MudText Typo="Typo.body2">Rejected Blogs</MudText>
+                            </div>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Class="card-animation" Elevation="4">
+                        <MudCardContent Class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Primary" Class="mr-4" Style="font-size: 3rem;" />
+                            <div>
+                                <MudText Typo="Typo.h5" Class="font-weight-bold">@(Stats?.RevisionCount ?? 0)</MudText>
+                                <MudText Typo="Typo.body2">Revision Requests</MudText>
+                            </div>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+
+        <!-- Charts Section -->
+        @* <MudItem xs="12" Class="mt-6">
+            <MudGrid Spacing="4">
+                <MudItem xs="12" md="3">
+                    <MudPaper Elevation="3" Class="pa-6" Style="height:300px;">
+                        <MudText Typo="Typo.h6" Class="mb-4">Approval Ratio</MudText>
+                        @if (DonutData != null && DonutLabels != null)
+                        {
+                            <MudChart ChartType="MudBlazor.ChartType.Donut" 
+                                      InputData="@DonutData" 
+                                      InputLabels="@DonutLabels"
+                                      style="width:100%;height:100%" />
+                        }
+                        else
+                        {
+                            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="300px" />
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" md="3">
+                    <MudPaper Elevation="3" Class="pa-6" Style="height:300px;">
+                        <MudText Typo="Typo.h6" Class="mb-4">Weekly Review Trend</MudText>
+                        <MudChart ChartType="MudBlazor.ChartType.Donut" 
+                                  InputData="@WeeklyData" 
+                                  InputLabels="@WeeklyLabels"
+                                  style="width:100%;height:100%" />
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudItem> *@
+
+        <!-- Tabs with Tables -->
+        <MudItem xs="12" Class="mt-8">
+            <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                <MudTabPanel Text="Pending">
+                    <ChildContent>
+                        <MudTable Items="@PendingBlogs" Hover="true" Dense="true" Loading="@IsLoading" Elevation="0">
+                            <HeaderContent>
+                                <MudTh>Title</MudTh>
+                                <MudTh>Author</MudTh>
+                                <MudTh>Submitted</MudTh>
+                                <MudTh>Action</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.Title</MudTd>
+                                <MudTd>@context.AuthorName</MudTd>
+                                <MudTd>@context.CreatedAt?.ToString("dd MMM yyyy")</MudTd>
+                                <MudTd>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                                               OnClick="@(() => ReviewBlog(context.Id))">
+                                        Review
+                                    </MudButton>
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </ChildContent>
+                </MudTabPanel>
+
+                <MudTabPanel Text="Approved">
+                    <ChildContent>
+                        <MudTable Items="@ApprovedBlogs" Hover="true" Dense="true" Elevation="0">
+                            <HeaderContent>
+                                <MudTh>Title</MudTh>
+                                <MudTh>Author</MudTh>
+                                <MudTh>Reviewed By</MudTh>
+                                <MudTh>Approved On</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.Title</MudTd>
+                                <MudTd>@context.AuthorName</MudTd>
+                                <MudTd>@context.EditorUid</MudTd>
+                                <MudTd>@context.ReviewedAt?.ToString("dd MMM yyyy HH:mm")</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </ChildContent>
+                </MudTabPanel>
+
+                <MudTabPanel Text="Rejected">
+                    <ChildContent>
+                        <MudTable Items="@RejectedBlogs" Hover="true" Dense="true" Elevation="0">
+                            <HeaderContent>
+                                <MudTh>Title</MudTh>
+                                <MudTh>Author</MudTh>
+                                <MudTh>Reason</MudTh>
+                                <MudTh>Rejected On</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.Title</MudTd>
+                                <MudTd>@context.AuthorName</MudTd>
+                                <MudTd>
+                                    <MudChip T="string" Color="Color.Error" Size="Size.Small">
+                                        @(context.RejectionReason ?? "No reason")
+                                    </MudChip>
+                                </MudTd>
+                                <MudTd>@context.ReviewedAt?.ToString("dd MMM yyyy")</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </ChildContent>
+                </MudTabPanel>
+            </MudTabs>
+        </MudItem>
+
+        <!-- Refresh Info -->
+        <MudItem xs="12" class="mt-6 text-center">
+            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                Last refreshed: @LastRefresh.ToString("dd MMM yyyy HH:mm:ss")
+            </MudText>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh"
+                       OnClick="LoadDataAsync" Class="ml-4">
+                Refresh Now
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @* @if (IsLoading)
+    {
+        <MudOverlay Visible="true" DarkBackground="true" Absolute="true">
+            <MudProgressCircular Indeterminate="true" Size="Size.Large" />
+        </MudOverlay>
+    } *@
+</MudContainer>
+
+<!-- Animation -->
+<style>
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .card-animation {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+    .card-animation:nth-child(1) { animation-delay: 0.1s; }
+    .card-animation:nth-child(2) { animation-delay: 0.2s; }
+    .card-animation:nth-child(3) { animation-delay: 0.3s; }
+    .card-animation:nth-child(4) { animation-delay: 0.4s; }
+</style>
+
+@code {
+    private DashboardStatsModel? Stats;
+    private List<BlogSummaryModel> PendingBlogs = new();
+    private List<BlogSummaryModel> ApprovedBlogs = new();
+    private List<BlogSummaryModel> RejectedBlogs = new();
+
+    private double[]? DonutData;
+    private string[]? DonutLabels;
+
+    private readonly double[] WeeklyData = { 12, 19, 15, 25, 22, 30, 28 };
+    private readonly string[] WeeklyLabels = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
+    private bool IsLoading = false;
+    private DateTime LastRefresh = DateTime.Now;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        IsLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            Stats = await EditorService.GetDashboardStatsAsync();
+
+            // Prepare donut chart data
+            DonutData = new double[] { Stats.ApprovedCount, Stats.RejectedCount };
+            DonutLabels = new string[] { "Approved", "Rejected" };
+
+            // Load blog lists in parallel
+            var tasks = new[]
+            {
+                EditorService.GetBlogsAsync("pending"),
+                EditorService.GetBlogsAsync("approved"),
+                EditorService.GetBlogsAsync("rejected")
+            };
+
+            var results = await Task.WhenAll(tasks);
+
+            PendingBlogs = results[0];
+            ApprovedBlogs = results[1];
+            RejectedBlogs = results[2];
+
+            LastRefresh = DateTime.Now;
+        }
+        catch (Exception ex)
+        {
+            // In real app: use Snackbar
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ReviewBlog(int id)
+    {
+        Navigation.NavigateTo($"/editor/review/{id}");
+    }
+}

@@ -1,0 +1,136 @@
+﻿@page "/admin/comment/edit/{CommentId:guid}"
+@layout AdminLayout
+@using BlogApp1.Shared
+@using BlogApp1.Client.Services
+@inject AdminService AdminService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+
+<MudContainer MaxWidth="MaxWidth.Medium" class="mt-5" >
+    <MudPaper Class="pa-4" Style="background:rgba(233, 230, 245,0.4);border-radius:16px; display:flex; flex-direction:column; gap:16px;height:100%">
+        @if(Loading)
+        {
+            <MudContainer Style="display:flex;justify-content:center;align-items:center;height:500px;">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </MudContainer>
+        }
+        else
+        {
+            @if (Comment is not null)
+            {
+                <MudText Typo="Typo.h3" Align="Align.Center" style="font-weight:600;color:#272145;">EDIT PARENT COMMENTS</MudText>
+                <MudGrid Spacing="3">
+                    <MudItem md="12">
+                        <MudContainer>
+                            <MudStack Row="true">
+                                <MudAvatar Size="Size.Small" Class="mb-2" Style="background-color:#3f51b5;color:white;">@Comment?.AuthorName?.ToUpper().First()</MudAvatar>
+                                <MudText>@Comment.AuthorName</MudText>
+                            </MudStack>
+
+                            <MudTextField @bind-Value="Comment.Content" Variant="Variant.Outlined" Label="Parent Content" AutoGrow />
+                        </MudContainer>
+                    </MudItem>
+                    <MudItem md="6">
+                        <MudContainer>
+                            <MudDatePicker Label="Posted On" Editable="true" @bind-Date="Comment.CreatedAt" Placeholder="Select Date" Variant="Variant.Outlined" />
+                        </MudContainer>
+                    </MudItem>
+                    <MudItem md="6">
+                        <MudContainer>
+                            <MudDatePicker Label="Updated On" Editable="true" @bind-Date="Comment.UpdatedAt" Placeholder="Select Date" Variant="Variant.Outlined" />
+                        </MudContainer>
+                    </MudItem>
+                </MudGrid>
+                <MudStack Row="true" dir="rtl" Style="padding-right:20px;">
+                    <MudButton Variant="Variant.Filled" Color="Color.Dark" Size="Size.Small" Style="border-radius:16px;" OnClick="UpdateEdit">
+                        Update
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Dark" Size="Size.Small" Class="ml-1"
+                               Style="border-radius:16px;" OnClick="GoBack">
+                        Back
+                    </MudButton>
+                </MudStack>
+            }
+            @if (ChildComments is not null && ChildComments.Count>0)
+            {
+                <MudText Typo="Typo.h3" Align="Align.Center" style="font-weight:600;color:#272145;">CHILD COMMENTS</MudText>
+                <MudGrid Spacing="3">
+                    @foreach (var comment in ChildComments)
+                    {
+                        <MudItem md="12">
+                            <MudContainer Style="background:rgba(199, 210, 254,0.2);padding:10px;border:1px solid black;border-radius:16px;">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                                    <MudAvatar Style="height:35px; width:35px; font-size:1rem;background-color:#3f51b5;color:white;">@comment.AuthorName.ToUpper().First()</MudAvatar>
+                                    <MudStack Spacing="0">
+                                        <MudText Style="padding:0;" Typo="Typo.caption">@comment.AuthorName</MudText>
+                                        <MudText Style="padding:0;color:grey;" Typo="Typo.caption">@comment.CreatedAt?.Date.ToString("MMM dd")</MudText>
+                                    </MudStack>
+                                </MudStack>
+                                <MudText Class="mt-3" Typo="Typo.body2">@comment.Content</MudText>
+                                <MudStack Row="true" dir="rtl">
+                                    <MudButton Variant="Variant.Filled" Color="Color.Dark" Size="Size.Small" Style="border-radius:16px;"
+                                               OnClick="@(() => GoToComment(comment.CommentUid))">
+                                        Edit
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small" Class="ml-1"
+                                               Style="border-radius:16px;"
+                                               OnClick="@(() => DeleteComment(comment.CommentUid))">
+                                        Delete
+                                    </MudButton>
+                                </MudStack>
+                            </MudContainer>
+                        </MudItem>
+                    } 
+                </MudGrid>
+                
+            }
+        }
+    </MudPaper>
+</MudContainer>
+
+
+@code{
+    [Parameter] public Guid CommentId { get; set; }
+    private CommentDto Comment = new();
+    private List<CommentDto> ChildComments = new();
+    private bool Loading = true;
+    protected override async Task OnInitializedAsync()
+    {
+        Loading = true;
+        Comment = await AdminService.GetCommentByUidAsync(CommentId);
+        ChildComments = await AdminService.GetRepliesAsync(CommentId);
+        Loading = false;
+
+    }
+    private void GoToComment(Guid id)
+    {
+        NavigationManager.NavigateTo($"/admin/comment/edit/{id}");
+    }
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/admin/comments");
+    }
+    private async Task DeleteComment(Guid commentUid)
+    {
+        bool isDeleted = await AdminService.DeleteCommentAsync(commentUid);
+        if (isDeleted)
+        {
+            Snackbar.Add("Comment deleted successfully!", Severity.Success);
+
+        }
+        else
+        {
+            Snackbar.Add("Failed to delete comment.", Severity.Error);
+        }
+    }
+    private async Task UpdateEdit()
+    {
+        bool result =  await AdminService.UpdateCommentAsync(Comment);
+        if(result)
+        {
+            Snackbar.Add("Comment Updated successfully!", Severity.Success);
+            NavigationManager.NavigateTo("/admin/comments");
+        }
+    }
+}

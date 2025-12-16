@@ -1,0 +1,163 @@
+﻿@* @page "/upload-image"
+@inject BlogApp1.Client.Services.ImageApiService ImageApiService
+
+<h3>Upload Blog Image</h3>
+
+<InputFile OnChange="HandleFileSelected" />
+@if (!string.IsNullOrEmpty(UploadedUrl))
+{
+    <div class="mt-3">
+        <p><b>Uploaded Image:</b></p>
+        <img src="@UploadedUrl" alt="Uploaded Image" style="max-width:300px;" />
+    </div>
+}
+
+@code {
+    private string UploadedUrl;
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        Console.WriteLine(file);
+        UploadedUrl = await ImageApiService.UploadImageAsync(file);
+        Console.WriteLine(UploadedUrl);
+    }
+} *@
+
+    @* @page "/upload-image"
+    @inject BlogApp1.Client.Services.ImageApiService ImageApiService
+
+    <h3>Upload Blog Image</h3>
+
+    <MudFileUpload T="IBrowserFile"
+                   Accept=".png,.jpg,.jpeg"
+                   MaximumFileCount="1"
+                   FilesChanged="UploadFile">
+        <ActivatorContent>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.CloudUpload">
+                Upload Image
+            </MudButton>
+        </ActivatorContent>
+    </MudFileUpload>
+
+    @if (!string.IsNullOrEmpty(UploadedUrl))
+    {
+        <div class="mt-3">
+            <MudImage Src="@UploadedUrl" Alt="Uploaded Image" Width="300" />
+        </div>
+    }
+
+    @code {
+        private string UploadedUrl;
+        private IList<IBrowserFile> files = new List<IBrowserFile>();
+
+        private async Task UploadFile(IBrowserFile file)
+        {
+            if (file is null) return;
+
+            files.Add(file);
+
+            // Upload to Supabase via your API service
+            UploadedUrl = await ImageApiService.UploadImageAsync(file);
+        }
+    } *@
+@page "/upload-image"
+@inject BlogApp1.Client.Services.ImageApiService ImageApiService
+
+<h3>Upload Blog Image</h3>
+<MudStack Style="width: 300px;">
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                   Accept=".png,.jpg,.jpeg"
+                   MaximumFileCount="1"
+                   @ref="_fileUpload"
+                   OnFilesChanged="OnInputFileChanged"
+                   InputClass="file-upload-input"
+                   Hidden="false">
+        <ActivatorContent>
+            <MudPaper Class="@_dragClass" Style="width: 300px; height: 300px;" Outlined>
+                <MudText Align="Align.Center">
+                    Drag and drop image here<br />or click to select<br /><br />
+                </MudText>
+                @if (file is not null)
+                {
+                    <MudChip T="string"
+                             Color="Color.Dark"
+                             Text="@file.Name"
+                             Style="margin-bottom:8px;" />
+                }
+            </MudPaper>
+        </ActivatorContent>
+    </MudFileUpload>
+
+    <MudToolBar Gutters="false" Class="d-flex justify-end gap-4 mt-2">
+        <MudButton Color="Color.Primary"
+                   Disabled="file is null"
+                   OnClick="Upload"
+                   Variant="Variant.Filled">
+            Upload
+        </MudButton>
+        <MudButton Color="Color.Error"
+                   Disabled="file is null"
+                   OnClick="ClearAsync"
+                   Variant="Variant.Filled">
+            Clear
+        </MudButton>
+    </MudToolBar>
+</MudStack>
+
+@if (!string.IsNullOrEmpty(UploadedUrl))
+{
+    <div class="mt-3">
+        <MudImage Src="@UploadedUrl" Alt="Uploaded Image" Width="300" />
+    </div>
+}
+
+<style>
+    .file-upload-input {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 10;
+        opacity: 0;
+    }
+
+    .drag-highlight {
+        border-color: #1976d2 !important;
+        background: #e3f2fd;
+    }
+</style>
+
+@code {
+    private string UploadedUrl;
+    private IBrowserFile file;
+    private MudFileUpload<IReadOnlyList<IBrowserFile>> _fileUpload;
+    private string _dragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        file = e.GetMultipleFiles(1)
+                .FirstOrDefault(f => f.ContentType == "image/png" || f.ContentType == "image/jpeg" || f.ContentType == "image/jpg");
+        ClearDragClass();
+    }
+
+    private async Task Upload()
+    {
+        if (file is not null)
+            UploadedUrl = await ImageApiService.UploadImageAsync(file);
+    }
+
+    private async Task ClearAsync()
+    {
+        await _fileUpload.ClearAsync();
+        file = null;
+        UploadedUrl = null;
+        ClearDragClass();
+        StateHasChanged();
+    }
+
+    private void SetDragClass() => _dragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full drag-highlight";
+    private void ClearDragClass() => _dragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+}

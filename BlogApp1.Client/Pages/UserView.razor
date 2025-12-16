@@ -1,0 +1,292 @@
+﻿@page "/admin/userview/{UserId:guid}"
+@using BlogApp1.Shared
+@using BlogApp1.Client.Services
+@inject AdminService AdminService
+@layout AdminLayout 
+@using BlogApp1.Client.Components.Auth
+@inject NavigationManager NavigationManager
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    @if (isLoading)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (user == null)
+    {
+        <MudText Color="Color.Error">User not found.</MudText>
+    }
+    else
+    {
+            <MudText Typo="Typo.h2" Align="Align.Center" style="font-weight:450;font-family: 'Pacifico', cursive;color:#272145;">@(user.FullName ?? "User") Profile</MudText>
+
+        <MudGrid Spacing="5">
+            <!-- Left Column -->
+            <MudItem md="8">
+                <MudPaper Class="pa-4" Style="background:rgba(233, 230, 245,0.4);border-radius:16px; display:flex; flex-direction:column; gap:16px;height:100%">
+                    <MudGrid Style="height:200px;">
+                        <MudItem md="3">
+                            <MudContainer Style="padding:10px;height:100%;">
+                                @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                                {
+                                    <MudAvatar Style="height:100%; width:100%; cursor:pointer;" @onclick="() => OpenAvatarDialog(user.AvatarUrl)">
+                                        <MudImage Src="@user.AvatarUrl" />
+                                    </MudAvatar>
+                                }
+                                else
+                                {
+                                    <MudAvatar Style="height:100%; width:100%; font-size:5rem;background-color:#3f51b5;color:white;">
+                                        @user.FullName.First()
+                                    </MudAvatar>
+                                }
+                            </MudContainer>
+                        </MudItem>
+                        <MudItem md="8">
+                            <MudGrid Style="display:flex;justify-content:center;align-items:center;margin-top:8px;">
+                                <MudItem md="3">
+                                    <MudStack Spacing="0" Justify="Justify.Center" AlignItems="AlignItems.Center">
+                                        <MudText Typo="Typo.h6" Align="Align.Center">Followers</MudText>
+                                        <MudText Typo="Typo.h6" Align="Align.Center">@(user.Follower?.Count() ?? 0)</MudText>
+                                    </MudStack>
+                                </MudItem>
+                                <MudItem md="3">
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.h6"  Align="Align.Center">Following</MudText>
+                                        <MudText Typo="Typo.h6" Align="Align.Center">@(user.Following?.Count() ?? 0)</MudText>
+                                    </MudStack>
+                                </MudItem>
+                                <MudItem md="3">
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.h6" Align="Align.Center">Posts</MudText>
+                                        <MudText Typo="Typo.h6" Align="Align.Center">@user.PostCount</MudText>
+                                    </MudStack>
+                                </MudItem>
+                                <MudItem md="3">
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.h6" Align="Align.Center">Views</MudText>
+                                        <MudText Typo="Typo.h6" Align="Align.Center">@user.ViewCount</MudText>
+                                    </MudStack>
+                                </MudItem>
+                                <MudItem md="12">
+                                    <MudDivider Style="border-color:darkgray"/>
+                                    <MudStack Row="true" Justify="Justify.Center" Spacing="5" Style="margin:10px;">
+                                        <MudIconButton Icon="@Icons.Custom.Brands.Twitter" Href="@user.Twitter" Color="Color.Primary" Size="Size.Medium" />
+
+                                        <MudIconButton Icon="@Icons.Custom.Brands.LinkedIn" Href="@user.LinkedIn" Color="Color.Primary" Size="Size.Medium"/>
+
+                                        <MudIconButton Icon="@Icons.Custom.Brands.Instagram" Href="@user.Instagram" Color="Color.Primary" Size="Size.Medium"/>
+
+                                        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Primary" Size="Size.Medium" Href="@user.Github" />
+
+                                        <MudIconButton Icon="@Icons.Custom.Brands.Facebook" Color="Color.Primary" Size="Size.Medium" Href="@user.Medium"/>
+                                    </MudStack>
+                                </MudItem>
+                            </MudGrid>
+                        </MudItem>
+                    </MudGrid>
+                    <MudDivider Style="border-color:darkgray" />
+                    <MudGrid Spacing="2">
+                        <MudItem md="6">
+                            <MudTextField @bind-Value="user.FullName" Label="Username" Disabled="true" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem md="6">
+                            <MudDatePicker Label="Joined On" Editable="true" @bind-Date="user.CreatedAt" Disabled="true" Placeholder="Select Date" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem md="6">
+                            <MudTextField @bind-Value="user.Email" Label="Email" Disabled="true" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem md="6">
+                            <MudTextField @bind-Value="user.Location" Label="Location" Disabled="true" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem md="12">
+                            <MudTextField @bind-Value="user.Bio" Label="Bio" Lines="2" Disabled="true" Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+                    <MudStack Row="true" Justify="Justify.Center" Spacing="5">
+
+                        <MudChip T="string" Variant="Variant.Outlined"
+                                 Style="@(user.IsActive ? "border-color: #3f51b5; color: #3f51b5;" : "")"
+                                 Color="@(user.IsActive ? Color.Default : Color.Error)">
+                            @(user.IsActive ? "Active" : "Inactive")
+                        </MudChip>
+
+                        <MudChip T="string" Variant="Variant.Outlined"
+                                 Style="@(user.IsVerified ? "border-color: #3f51b5; color: #3f51b5;" : "")"
+                                 Color="@(user.IsVerified ? Color.Default : Color.Error)">
+                            @(user.IsVerified ? "Verified" : "Unverified")
+                        </MudChip>
+
+                        <MudChip T="string" Variant="Variant.Outlined"
+                                 Style="@(user.NewsletterSubscribed ? "border-color: #3f51b5; color: #3f51b5;" : "")"
+                                 Color="@(user.NewsletterSubscribed ? Color.Default : Color.Error)">
+                            @(user.NewsletterSubscribed ? "NewsLetter Subscribed" : "NewsLetter Unsubscribed")
+                        </MudChip>
+
+                        <MudChip T="string" Variant="Variant.Outlined"
+                                 Style="@(user.Theme ? "border-color: #3f51b5; color: #3f51b5;" : "")"
+                                 Color="@(user.Theme ? Color.Default : Color.Error)">
+                            @(user.Theme ? "Light" : "Dark")
+                        </MudChip>
+
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+            
+            <!-- Right Column -->
+            <MudItem md="4">
+                <MudPaper Class="pa-4" Style="background:rgba(233, 230, 245,0.4);border-radius:16px; display:flex; flex-direction:column; align-items:center; gap:16px;height:100%">
+                    <MudGrid>
+                        <MudItem md="12">
+                            <MudContainer Style="height:325px;padding:5px;margin:0;border-radius:16px;border:0.5px solid black ">
+                                <MudTabs @bind-ActivePanelIndex="activeIndex" Class="custom-tabs">
+                                    <MudTabPanel Class="c1" Text=@("Follwers")></MudTabPanel>
+                                    <MudTabPanel Class="c1" Text="@("Following")"></MudTabPanel>
+                                </MudTabs>
+                                <MudContainer Style="overflow-y:auto;height:250px;">
+                                    @if (activeIndex == 0)
+                                    {
+                                        @if (Follower != null && Follower.Any())
+                                        {
+                                            @foreach (var followerName in Follower)
+                                            {
+                                                <MudText Class="mt-2 mb-2 ml-2">@followerName</MudText>
+                                                <MudDivider Style="border-color:darkgray" />
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <MudText Align="Align.Center" Class="mt-5 mb-5" Color="Color.Surface">No followers yet.</MudText>
+                                        }
+                                    }
+                                    else @if (activeIndex == 1)
+                                    {
+                                        @if (Following != null && Following.Any())
+                                        {
+                                            @foreach (var followingName in Following)
+                                            {
+                                                <MudText Class="mt-2 mb-2 ml-2">@followingName</MudText>
+                                                <MudDivider Style="border-color:darkgray" />
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <MudText Align="Align.Center" Class="mt-5 mb-5" Color="Color.Surface">No followers yet.</MudText>
+                                        }
+                                    }
+                                </MudContainer>
+                            </MudContainer>
+                        </MudItem>
+                        <MudItem md="12">
+                            <MudContainer Style="height:100px;padding:5px;margin:0;border-radius:16px;border:0.5px solid black ">
+                                <MudText Typo="Typo.h6" Align="Align.Center" Class="mb-2" >ROLES</MudText>
+                                <MudChipSet T="string" Size="Size.Large" Style="display:flex;justify-content:center">
+                                    @foreach(var c in user.Roles)
+                                    {
+                                        <MudChip Variant="Variant.Outlined">@c</MudChip>
+                                    }
+                                </MudChipSet>
+                            </MudContainer>
+                        </MudItem>
+                        <MudItem md="12">
+                            <MudStack Row="true" dir="rtl">
+                                <MudButton style="background-color:#3f51b5;color:white;border-radius:22px;" Size="Size.Small" Variant="Variant.Outlined" OnClick="@(() => EditUser(user.UserId))">Edit Profile</MudButton>
+                                <MudButton style="border-radius:22px;" Color="Color.Dark" Size="Size.Small" Variant="Variant.Outlined" OnClick="Back">Back</MudButton>
+                            </MudStack>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
+
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public Guid UserId { get; set; }
+    private int activeIndex = 0;
+    private BlogUserDto? user;
+    private bool isLoading = true;
+    List<string> Follower = new();
+    List<string> Following = new();
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+
+        try
+        {
+            user = await AdminService.GetUserByIdAsync(UserId);
+
+            if (user != null)
+            {
+                // Make sure follower/following arrays are not null
+                var followerIds = user.Follower?.ToList() ?? new List<string>();
+                var followingIds = user.Following?.ToList() ?? new List<string>();
+
+                // Call the services
+                Follower = await AdminService.GetFollowersAsync(followerIds);
+                Following = await AdminService.GetFollowingAsync(followingIds);
+
+                // Debug logs
+                foreach (var f in Follower)
+                    Console.WriteLine($"Follower: {f}");
+
+                foreach (var f in Following)
+                    Console.WriteLine($"Following: {f}");
+                foreach (var f in followerIds)
+                    Console.WriteLine($"FollowerIds: {f}");
+
+                foreach (var f in followingIds)
+                    Console.WriteLine($"FollowingIds: {f}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading user data: {ex.Message}");
+            user = null;
+            Follower = new List<string>();
+            Following = new List<string>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    [Inject] IDialogService DialogService { get; set; } = default!;
+    private async Task OpenAvatarDialog(string? avatarUrl)
+    {
+        if (string.IsNullOrEmpty(avatarUrl))
+            return; // fallback, nothing to show
+
+        var parameters = new DialogParameters
+        {
+            { "ImageUrl", avatarUrl }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small };
+        DialogService.Show<ViewImageDialog>("Avatar Preview", parameters, options);
+    }
+    private void EditUser(Guid uuid)
+    {
+        NavigationManager.NavigateTo($"/admin/profileedit/{uuid}");
+    }
+    private void Back()
+    {
+        NavigationManager.NavigateTo($"/admin/users");
+    }
+}
+<style>
+    body{
+        background-color: #FBFAFF;
+    }
+
+    .custom-tabs .mud-tabs-tabbar {
+        background: rgba(233, 230, 245,0.4);
+    }
+
+    .custom-tabs .mud-tab-slider {
+        background-color: #3f51b5 !important; /* Choose any color you want */
+    }
+
+    .c1 {
+        @* min-width: 100px !important; *@
+        color: black !important;
+    }
+</style>

@@ -1,0 +1,103 @@
+﻿@inherits LayoutComponentBase
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
+<MudLayout>
+        
+    <!-- Fixed App Bar -->
+    <MudAppBar Fixed="true" Class="app-bar-css">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Edge="Edge.Start" OnClick="ToggleDrawer" />
+        <MudText Typo="Typo.h4" Style="font-family:'Baskerville Old Face'; font-weight:500">MiddleMan</MudText>
+        <MudSpacer />
+        <MudText Typo="Typo.h6">Author</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Newspaper" Class="ml-1" Href="/author"></MudIconButton>
+        <MudIconButton Icon="@Icons.Material.Filled.Notifications" Href="/reader/notifications"></MudIconButton>
+        <MudMenu Icon="@Icons.Material.Filled.AccountCircle" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+            <MudMenuItem Href="/reader/profile">Profile</MudMenuItem>
+            <MudMenuItem Href="/logout">Logout</MudMenuItem>
+        </MudMenu>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Variant="DrawerVariant.Mini" Elevation="1" ClipMode="DrawerClipMode.Always" MiniVariantWidth="56px" Width="200px" class="drawer-css">
+        <MudNavMenu Class="mt-5">
+            <MudNavLink Href="/reader" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All" Class="custom-icon" >
+                @if (_drawerOpen)
+                {
+                    <span>Home</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/reader/search" Icon="@Icons.Material.Filled.Search" Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Search</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/reader/library" Icon="@Icons.Material.Filled.Bookmark" Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Library</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/reader/profile" Icon="@Icons.Material.Filled.AccountCircle" Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Profile</span>
+                }
+            </MudNavLink>
+            
+            <MudNavLink Href="/reader/logout" Icon="@Icons.Material.Filled.Logout" Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Logout</span>
+                }
+            </MudNavLink>
+
+        </MudNavMenu>
+    </MudDrawer>
+   
+    <MudMainContent Class="p-4" Style="flex:1;">
+        @Body
+    </MudMainContent>
+
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+    private string role = "Reader";
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}
+<style>
+    .app-bar-css {
+        background: linear-gradient(135deg,#C7D2FE,#E9D5FF);
+        color: black;
+    }
+
+    .mud-drawer {
+        color: black;
+    }
+
+    .mud-icon-root {
+        color: black;
+    }
+
+    .custom-icon .mud-icon-root {
+        color: #0a2340 !important;
+    }
+
+    .mud-nav-link.active {
+        color: #24609c !important;
+    }
+
+    .drawer-css {
+        background: linear-gradient( to top, #E9D5FF, #FBFAFF );
+    }
+
+</style>

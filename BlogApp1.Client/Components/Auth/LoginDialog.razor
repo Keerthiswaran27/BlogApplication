@@ -1,0 +1,186 @@
+﻿@using MudBlazor
+@using BlogApp1.Shared
+@using ASService.Services
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+<MudDialog Class="dialog-overbox">
+    <DialogContent>
+        <MudContainer Elevation="0" Class="center-container login-container">
+
+            <MudText Typo="Typo.h3" GutterBottom="true" Align="Align.Center" Style="font-weight:500;color:#361d32;">Start Blogging</MudText>
+
+            <MudTextField @bind-Value="_Email"
+                          Label="Email"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          Class="login-input"/>
+
+            <MudTextField @bind-Value="_Password"
+                          Label="Password"
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Password"
+                          Required="true"
+                          Class="login-input"/>
+
+            <MudSelect T="string"
+                       Label="Select Role"
+                       @bind-Value="_SelectedRole"
+                       Variant="Variant.Outlined"
+                       Class="login-input"
+                       Required="true">
+                <MudSelectItem Value="@("Reader")">Reader</MudSelectItem>
+                <MudSelectItem Value="@("Author")">Author</MudSelectItem>
+                <MudSelectItem Value="@("Editor")">Editor</MudSelectItem>
+                <MudSelectItem Value="@("Admin")">Admin</MudSelectItem>
+            </MudSelect>
+            @if(message is not null)
+            {
+                <MudAlert Severity="Severity.Error">@message</MudAlert>
+            }
+            @if(signin)
+            {
+                <MudButton OnClick="HandleLogin"
+                           Variant="Variant.Filled"
+                           FullWidth="true"
+                           Class="login-button mt-2">
+                    SIGN IN
+                </MudButton>
+            }
+            else
+            {
+                <MudButton OnClick="HandleLogin"
+                           Variant="Variant.Filled"
+                           FullWidth="true"
+                           Class="login-button mt-2">Signing in
+                </MudButton>
+                
+            }
+
+            <MudText Align="Align.Center" Class="mt-4">
+                Don't have an account? 
+                <MudLink @onclick="OpenRegisterDialog" Style="color:blue;">Create one</MudLink>
+                    
+            </MudText>
+        </MudContainer>
+    </DialogContent>
+    
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Inject] IDialogService DialogService { get; set; }
+
+    private bool signin = true;
+    private string? _Email;
+    private string? _Password;
+    private string? _SelectedRole;
+    private string? message;
+
+    private async Task HandleLogin()
+    {
+        signin = false;
+        var model = new SignInModel
+        {
+            Email = _Email,
+            Password = _Password,
+            Role = _SelectedRole
+        };
+        string result = await AuthService.LoginAsync(model);
+        Console.WriteLine(result);
+        if(result is not null)
+        {
+            Console.WriteLine("Successful login");
+            switch(result)
+            {
+                case "Reader":
+                    message = null;
+                    NavigationManager.NavigateTo("/reader");
+                    break;
+                case "Author":
+                    message = null;
+                    NavigationManager.NavigateTo("/author");
+                    break;
+                case "Admin":
+                    message = null;
+                    NavigationManager.NavigateTo("/admin");
+                    break;
+                case "Editor":
+                    message = null;
+                    NavigationManager.NavigateTo("/editor");
+                    break;
+                case "wrong role":
+                    message = $"You can't access {_SelectedRole} role";
+                    break;
+                case "no user found":
+                    message = $"Invalid Credentials";
+                    break;
+                default:
+                    NavigationManager.NavigateTo("/dashboard");
+                    break;
+            }
+            signin = true;
+        }
+        else
+        {
+            Console.WriteLine("Login unsucessful");
+        }
+    }
+
+    private void OpenRegisterDialog()
+    {
+        MudDialog.Close();
+        var parameters = new DialogParameters();
+        var options = new DialogOptions()
+        {
+            MaxWidth = MaxWidth.Small,
+            BackdropClick = true,
+            CloseButton = true,
+            BackgroundClass = "dialog-backdrop-blur"
+        };
+        DialogService.Show<RegisterDialog>("", parameters, options);
+    }
+    
+    private async void CloseLoginDialog()
+    {
+        MudDialog.Close();
+
+    }
+}
+<style>
+    .center-container {
+        width:500px;
+        background-color: #f2e0dc;
+    }
+
+    .login-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding-left:1.5rem;
+        padding-bottom:1.5rem;
+        padding-right:1.5rem;
+        
+    }
+    .dialog-overbox{
+        border-top: 5px solid #361d32;
+        background-color: #f2e0dc;
+    }
+    .login-input {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+    }
+
+    .login-button {
+        padding: 0.75rem;
+        font-weight: bold;
+        border-radius:16px;
+        color:white;
+        background-color: #543c52;
+    }
+    .login-button:hover{
+        background-color:#543c52;
+    }
+    .mud-input.mud-input-outlined{
+        background-color: #f1e8e6;
+    }
+</style>

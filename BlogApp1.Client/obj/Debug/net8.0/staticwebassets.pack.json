@@ -1,0 +1,121 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\KEERTHI\\.nuget\\packages\\chartjs.blazor.fork\\2.0.2\\contentFiles\\any\\netstandard2.1\\wwwroot\\ChartJsBlazorInterop.js",
+      "PackagePath": "staticwebassets\\ChartJsBlazorInterop.js"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\bin\\Debug\\net8.0\\wwwroot\\_framework\\blazor.webassembly.js",
+      "PackagePath": "staticwebassets\\_framework\\blazor.webassembly.js"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\obj\\Debug\\net8.0\\compressed\\13e2yomlsn.gz",
+      "PackagePath": "staticwebassets\\_framework\\blazor.webassembly.js.gz"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\obj\\Debug\\net8.0\\scopedcss\\bundle\\BlogApp1.Client.styles.css",
+      "PackagePath": "staticwebassets\\BlogApp1.Client.styles.css"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\obj\\Debug\\net8.0\\service-worker-assets.js",
+      "PackagePath": "staticwebassets\\service-worker-assets.js"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\obj\\Debug\\net8.0\\service-worker\\service-worker.published.js",
+      "PackagePath": "staticwebassets\\service-worker.js"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\Images\\23MIS0086_FEESRECEIPT.pdf",
+      "PackagePath": "staticwebassets\\Images\\23MIS0086_FEESRECEIPT.pdf"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\Images\\Ai.jpg",
+      "PackagePath": "staticwebassets\\Images\\Ai.jpg"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\Images\\Food.jpg",
+      "PackagePath": "staticwebassets\\Images\\Food.jpg"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\Images\\Health.jpg",
+      "PackagePath": "staticwebassets\\Images\\Health.jpg"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\Images\\LifeStyle.jpeg",
+      "PackagePath": "staticwebassets\\Images\\LifeStyle.jpeg"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\Images\\ML.jpeg",
+      "PackagePath": "staticwebassets\\Images\\ML.jpeg"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\Images\\Travel.jpg",
+      "PackagePath": "staticwebassets\\Images\\Travel.jpg"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\Images\\banner.jpg",
+      "PackagePath": "staticwebassets\\Images\\banner.jpg"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\Images\\sample.jpg",
+      "PackagePath": "staticwebassets\\Images\\sample.jpg"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\blogmain.png",
+      "PackagePath": "staticwebassets\\blogmain.png"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\chat.css",
+      "PackagePath": "staticwebassets\\chat.css"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\content-creation.png",
+      "PackagePath": "staticwebassets\\content-creation.png"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\css\\app.css",
+      "PackagePath": "staticwebassets\\css\\app.css"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\discuss.png",
+      "PackagePath": "staticwebassets\\discuss.png"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\icon-192.png",
+      "PackagePath": "staticwebassets\\icon-192.png"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\icon-512.png",
+      "PackagePath": "staticwebassets\\icon-512.png"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\index.html",
+      "PackagePath": "staticwebassets\\index.html"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\main1.png",
+      "PackagePath": "staticwebassets\\main1.png"
+    },
+    {
+      "Id": "C:\\Users\\KEERTHI\\source\\repos\\WiseWork\\BlogApp1.Client\\wwwroot\\manifest.webmanifest",
+      "PackagePath": "staticwebassets\\manifest.webmanifest"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.BlogApp1.Client.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.BlogApp1.Client.props",
+      "PackagePath": "build\\BlogApp1.Client.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.BlogApp1.Client.props",
+      "PackagePath": "buildMultiTargeting\\BlogApp1.Client.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.BlogApp1.Client.props",
+      "PackagePath": "buildTransitive\\BlogApp1.Client.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

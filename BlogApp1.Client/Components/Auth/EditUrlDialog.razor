@@ -1,0 +1,38 @@
+﻿
+
+<MudContainer Style="background-color:#FBFAFF;padding-bottom:20px;">
+    <MudDialog Style="background: linear-gradient(135deg,#C7D2FE,#E9D5FF);">
+        <DialogContent>
+            @* <MudText Typo="Typo.h6">@($"Edit {PlatformName} URL")</MudText> *@
+            <MudTextField @bind-Value="EditedUrl" Label="Edit URL" Variant="Variant.Outlined" FullWidth="true" />
+        </DialogContent>
+
+        <DialogActions>
+            <MudButton Color="Color.Error" Style="border-radius:16px;" Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+            <MudButton Style="background-color:black;color:white;border-radius:16px;" Variant="Variant.Filled" OnClick="Save">Save Url</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudContainer>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public string PlatformName { get; set; } = string.Empty;
+    [Parameter] public string CurrentUrl { get; set; } = string.Empty;
+
+    private string EditedUrl = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        EditedUrl = CurrentUrl;
+    }
+
+    private void Save()
+    {
+        MudDialog.Close(DialogResult.Ok(EditedUrl));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

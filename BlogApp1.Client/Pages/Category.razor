@@ -1,0 +1,199 @@
+﻿@page "/category/{Title}"
+@layout AuthorLayour        
+@using BSService.Services
+@using BlogApp1.Shared
+@inject BlogService BSService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<MudText Typo="Typo.h2" Class="mt-3 mb-3" Align="Align.Center" Style="color:#24609c">@Title.ToUpper()</MudText>
+
+<MudContainer Class="container-2" Style="height: 500px;overflow-y: auto;padding-left:150px;padding-right:150px;">
+    @if (blogs == null)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (blogs.Count == 0)
+    {
+        <MudText>No blogs found.</MudText>
+    }
+    else
+    {
+        @foreach (var blog in blogs)
+        {
+            @if (blog.Domain.ToLower() == Title.ToLower())
+            {
+                <MudContainer MaxWidth="MaxWidth.Medium" Class="d-flex justify-space-between p-3" Style="margin-top:10px;margin-bottom:10px;" Elevation="3">
+                    <MudGrid>
+                        @* content *@
+                        <MudItem sm="9" md="8">
+                            <MudContainer Style="padding:10px;">
+                                <MudStack Row="true" AlignItems="AlignItems.Start" Spacing="2">
+                                    <MudAvatar Size="Size.Small" Style="background-color:#ff5722;color:white;">@(blog.AuthorName.First())</MudAvatar>
+                                    <MudText Typo="Typo.caption" Style="padding-top:3px;">@blog.AuthorName</MudText>
+                                </MudStack>
+                                <MudText Typo="Typo.h5" Style="color:#212121;cursor:pointer;font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;font-weight:800;" @onclick="@(() => GoToBlog(blog.Slug))" Class="mt-3">@blog.Title</MudText>
+                                <MudText Typo="Typo.body1" Truncate="true" style="color:#757575">
+                                    @((blog.Content?.Length > 150) ? blog.Content.Substring(3, 100) + "..." : blog.Content)
+                                </MudText>
+                            </MudContainer>
+                            <MudContainer Style="display:flex;justify-content:start;padding-left:10px;width:100%">
+                                <MudStack Row="true">
+                                    <MudStack Row="true" Spacing="0" Style="padding-top:3px">
+                                        <MudText Typo="Typo.caption" Style="color:#312121">@blog.CreatedAt?.Date.ToString("MMM dd")</MudText>
+                                        <MudCheckBox T="bool" Value="@likes.Contains(blog.Id)" ValueChanged="@(checkedValue => ToggleLike(blog.Id, checkedValue))" Color="Color.Secondary" Size="Size.Small" CheckedIcon="@Icons.Material.Filled.Favorite" UncheckedIcon="@Icons.Material.Filled.FavoriteBorder" Class="like-button-css ml-3"></MudCheckBox>
+                                        <MudText Typo="Typo.caption" Style="color:#312121;" Class="ml-1">@blog.LikesCount</MudText>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Comment" Size="Size.Small" @onclick="@(() => GoToBlog(blog.Slug))" Class="share-css ml-3" />
+                                        <MudText Typo="Typo.caption" Style="color:#312121;" Class="ml-1"></MudText>
+                                    </MudStack>
+                                </MudStack>
+                                <MudSpacer />
+                                <MudStack Row="true">
+                                    <MudStack Row="true" Spacing="0">
+                                        <MudCheckBox T="bool" Value="@saves.Contains(blog.Id)" ValueChanged="@(checkedValue => ToggleSave(blog.Id, checkedValue))" Color="Color.Secondary" Size="Size.Small" CheckedIcon="@Icons.Material.Filled.Bookmark" UncheckedIcon="@Icons.Material.Filled.BookmarkBorder" Style="padding-top:3px;" Class="like-button-css save-css ml-2"></MudCheckBox>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Share" Size="Size.Small" @onclick="@(() => SharePost(blog))" Class="share-css ml-2" />
+
+                                        <MudMenu Icon="@Icons.Material.Filled.MoreHoriz" Size="Size.Small" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Class="share-css ml-2">
+                                            <MudContainer Style="height:100%;width:220px;padding:0;">
+                                                <MudText Typo="Typo.subtitle2" Style="padding:10px;margin-left:6px;">Not Interested</MudText>
+                                                <MudDivider></MudDivider>
+                                                <MudText Typo="Typo.subtitle2" Style="padding:10px;margin-left:6px;">Follow author</MudText>
+                                                <MudDivider></MudDivider>
+                                                <MudText Typo="Typo.subtitle2" Style="padding:10px;margin-left:6px;">Mute author</MudText>
+                                                <MudText Typo="Typo.subtitle2" Style="padding:10px;margin-left:6px;padding-top:0;;color:rgb(170,0,0)">Report story...</MudText>
+                                            </MudContainer>
+                                        </MudMenu>
+
+                                    </MudStack>
+                                </MudStack>
+                            </MudContainer>
+                        </MudItem>
+                        @* image *@
+                        <MudItem sm="3" md="4">
+                            <MudContainer style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;padding:0;cursor:pointer;" @onclick="@(() => GoToBlog(blog.Slug))">
+                                <MudImage Src="@blog.CoverImageUrl" Alt="@blog.Title" Style="width:100%;height:100%;padding-top:50px;padding-bottom:40px;padding-right:20px;" />
+                            </MudContainer>
+                        </MudItem>
+                    </MudGrid>
+                </MudContainer>
+                <MudDivider />
+            }
+            else
+            {
+
+            }
+        }
+    }
+
+</MudContainer>
+
+
+@code {
+    [Parameter]
+    public string Title { get; set; }  // receives value from URL
+    private List<BlogDto>? blogs;
+    private List<int> likes = new();
+    private List<int> saves = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        blogs = await BSService.GetAllBlogsAsync();
+        likes = await BSService.GetLikedIdAsync();
+        saves = await BSService.GetSavedIdAsync();
+
+    }
+    private void GoToBlog(string slug)
+    {
+        NavigationManager.NavigateTo($"/blog/{slug}");
+    }
+    private async Task ToggleLike(int blogId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!likes.Contains(blogId))
+            {
+                likes.Add(blogId);
+                foreach (var blog in blogs)
+                {
+                    if (blog.Id == blogId)
+                    {
+                        blog.LikesCount += 1;
+                    }
+                }
+                var success = await BSService.ToggleLikeAsync(blogId, true);
+                if (!success)
+                {
+                    likes.Remove(blogId);
+                }
+            }
+        }
+        else
+        {
+            if (likes.Contains(blogId))
+            {
+                likes.Remove(blogId);
+                foreach (var blog in blogs)
+                {
+                    if (blog.Id == blogId)
+                    {
+                        blog.LikesCount -= 1;
+                    }
+                }
+                var success = await BSService.ToggleLikeAsync(blogId, false);
+                if (!success)
+                {
+                    likes.Add(blogId);
+                }
+
+            }
+        }
+    }
+    private async Task ToggleSave(int blogId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!saves.Contains(blogId))
+            {
+                saves.Add(blogId);
+                var success = await BSService.ToggleSaveAsync(blogId, true);
+                if (!success)
+                {
+                    saves.Remove(blogId);
+                }
+            }
+        }
+        else
+        {
+            if (saves.Contains(blogId))
+            {
+                saves.Remove(blogId);
+                var success = await BSService.ToggleSaveAsync(blogId, false);
+                if (!success)
+                {
+                    saves.Add(blogId);
+                }
+
+            }
+        }
+    }
+    private async Task SharePost(BlogDto blog)
+    {
+        if (blog == null) return;
+
+        var title = blog.Title;
+        var text = blog?.Content.Substring(0, 50);
+        var url = $"https://myblog.com/blog/{blog.Slug}";
+
+        await JS.InvokeVoidAsync("navigator.share", new
+        {
+            title,
+            text,
+            url
+        });
+    }
+}
+<style>
+    .like-button-css .mud-icon-button {
+        padding: 0;
+    }
+</style>

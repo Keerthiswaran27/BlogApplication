@@ -1,0 +1,30 @@
+﻿@page "/editor/analytics"
+@layout EditorLayout
+@inject EditorService EditorService
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    @if (analytics == null)
+    {
+        <MudProgressCircular Indeterminate />
+    }
+    else
+    {
+        <MudText Typo="Typo.h5">📈 Editor Analytics</MudText>
+
+        <MudPaper Class="p-4 my-3">
+            <MudText>Total Reviewed: <b>@analytics.TotalReviewed</b></MudText>
+            <MudText>Total Approved: <b>@analytics.TotalApproved</b></MudText>
+            <MudText>Total Rejected: <b>@analytics.TotalRejected</b></MudText>
+            <MudText>Average Review Time: <b>@analytics.AverageReviewTimeHours</b> hrs</MudText>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private AnalyticsModel? analytics;
+
+    protected override async Task OnInitializedAsync()
+    {
+        analytics = await EditorService.GetAnalyticsAsync();
+    }
+}

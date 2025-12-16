@@ -1,0 +1,20 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="2" Fixed="true" Style="background-color:#361d32;color:white;">
+        <MudText Typo="Typo.h5" Class="ml-2" Style="font-weight:700;color:white">MiddleMan</MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Home" />
+        <MudIconButton Icon="@Icons.Material.Filled.Info" />
+        <MudIconButton Icon="@Icons.Material.Filled.Contacts" />
+        <MudIconButton Icon="@Icons.Material.Filled.Settings"/>
+    </MudAppBar>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>

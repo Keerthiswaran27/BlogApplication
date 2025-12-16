@@ -1,0 +1,355 @@
+﻿@page "/editor/review/{id:int}"
+@layout EditorLayout
+@using BlogApp1.Shared
+@using BlogApp1.Shared.EditorModels
+@using BlogApp1.Client.Services
+@inject EditorService EditorService
+@inject NavigationManager NavManager
+@inject ISnackbar Snackbar
+@inject IJSRuntime JS
+@inject IDialogService DialogService
+
+
+@if(blog == null)
+{
+    <MudProgressCircular Color="Color.Primary" />
+}
+else
+{
+    <MudContainer Style="margin-top:20px;margin-bottom:20px;">
+
+        <MudGrid Spacing="5">
+            <MudItem md="12">
+                <MudContainer Class="p-4 mb-3" Style="border-radius:10px;" >
+
+                    <MudGrid>
+                        <MudItem md="1">
+                            <MudContainer Style="display:flex;justify-content:center;align-items:center">
+                                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Default"
+                                               OnClick="GoBack" Title="Back to Dashboard" />
+                            </MudContainer>
+                        </MudItem>
+                        <MudItem xs="12" sm="11">
+
+                            <MudTextField @bind-Value="blog.Title" Style="font-family:'Satoshi', system-ui, sans-serif, sans-serif;font-weight:600" Typo="Typo.h3" Placeholder="Edit Blog Title" Variant="Variant.Text" AutoGrow FullWidth="true" />
+                        </MudItem>
+                        <MudItem xs="12" sm="12">
+                            <MudStack Row="true">
+                                @if (blog.AuthorName != null)
+                                {
+                                    <MudAvatar Class="mt-1" Style="height:35px; width:35px; font-size:1rem;background-color:#3f51b5;color:white;">@GetAvatarInitial(blog?.AuthorName)</MudAvatar>
+                                }
+                                else
+                                {
+                                    <MudAvatar Class="mt-1" Style="height:35px; width:35px; font-size:1rem;background-color:#3f51b5;color:white;">U</MudAvatar>
+
+                                }
+                                <MudStack Spacing="0">
+                                    <MudText Style="padding:0;" Typo="Typo.body1">@blog.AuthorName</MudText>
+                                    <MudText Style="padding:0;color:grey;" Typo="Typo.caption">@blog.CreatedAt?.Date.ToString("MMM dd")</MudText>
+                                </MudStack>
+                                <MudSpacer />
+
+                                <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                                    <MudText Typo="Typo.subtitle1" Class="mx-4">
+                                        <strong>Reading Time:</strong> @(blog?.ReadingTime ?? 0) min
+                                    </MudText>
+                                </MudHidden>
+                                <MudSpacer/>
+                                <MudButton OnClick="@gotoblog" >Preview</MudButton>
+                                <MudChip T="string" Color="Color.Warning" Variant="Variant.Filled" Size="Size.Large">
+                                    @blog.Status.ToUpper()
+                                </MudChip>
+                            </MudStack>
+                        </MudItem>
+                    </MudGrid>
+                </MudContainer>
+            </MudItem>
+            <!-- Quill Editor -->
+            <MudItem xs="12" md="7">
+                <MudPaper Class="p-4" Style="border-radius:10px;padding:10px;height:100%;background-color:#EDE9FE" Elevation="4">
+                    <MudPaper>
+                        <div id="@EditorId" style="height:500px;width:100%;background:rgba(233, 230, 245,.5);"></div>
+                    </MudPaper>
+                </MudPaper>
+            </MudItem>
+
+            <!-- SEO Section -->
+            <MudItem xs="12" md="5">
+                <MudPaper Class="p-4" Elevation="4" Style="border-radius:10px;padding:10px;background-color:#EDE9FE">
+                    <MudStack Style="padding:0">
+                        <MudContainer Style="height:250px;padding:0">
+                            <MudImage Src="@blog.CoverImageUrl" style="width:100%;height:100%;border-radius:12px;"></MudImage>
+                        </MudContainer>
+
+                        <MudGrid Spacing="2">
+                            
+                            
+
+                            <MudItem md="12">
+                                <MudTextField T="string" class="mb-4" @bind-text="blog.Slug" Label="Slug" Placeholder="Slug For SEO" Variant="Variant.Outlined" AutoGrow />
+                                <MudTextField T="string" Class="mb-4" Label="Meta Description" Placeholder="Summary of ur Blog" Variant="Variant.Outlined" @bind-text="blog.MetaDescription" Lines="2" />
+                            </MudItem>
+                            <MudItem md="6">
+                                <MudAutocomplete T="string"
+                                                 @bind-Value="blog.Domain"
+                                                 Label="Blog Domain"
+                                                 Variant="Variant.Outlined"
+                                                 PlaceHolder="Category of the Blog"
+                                                 SearchFunc="EnterCategory"
+                                                 ResetValueOnEmptyText="true"
+                                                 Dense="true" />
+                            </MudItem>
+
+                            <MudItem md="6">
+                                <MudAutocomplete T="string"
+                                                 @bind-Value="Tag"
+                                                 Label="Blog Tags"
+                                                 Variant="Variant.Outlined"
+                                                 PlaceHolder="@pctag"
+                                                 Adornment="Adornment.End"
+                                                 AdornmentIcon="@Icons.Material.Sharp.Add"
+                                                 OnAdornmentClick="AddTags"
+                                                 SearchFunc="EnterTag"
+                                                 ResetValueOnEmptyText="true"
+                                                 Dense="true"
+                                                 class="mb-2" />
+                            </MudItem>
+                            <MudItem md="12">
+                                <MudChipSet T="string" AllClosable OnClose="Closed">
+                                    @if (blog?.Tags != null && blog.Tags.Any())
+                                    {
+                                        @foreach (var t in blog.Tags)
+                                        {
+                                            <MudChip Text="@t" Color="Color.Dark" Variant="Variant.Outlined" />
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                            No tags added yet.
+                                        </MudText>
+                                    }
+                                </MudChipSet>
+
+
+                            </MudItem>
+                        </MudGrid>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+            <MudItem md="12">
+                <!-- 🔴 ACTION BUTTONS -->
+                <MudPaper Class="p-3 mt-4" Elevation="4" Style="padding:10px;background-color:white;border-radius:10px;border:1px solid #3f51b5;">
+                    <MudStack Row="true" Spacing="2">
+                        <MudGrid>
+                            <MudItem md="7">
+                                <MudContainer>
+                                    <MudTextField @bind-Value="Comments" Label="Comments for Author" Placeholder="Write Comments / Reason for rejection here... " Variant="Variant.Outlined" Lines="3" />
+                                </MudContainer>
+                            </MudItem>
+                            <MudItem md="5">
+                                <MudStack Spacing="3" Class="mt-2" >
+                                    <MudStack Row="true">
+                                        <MudButton Variant="Variant.Outlined" FullWidth="true" Style="border-radius:16px;" OnClick="UpdateBlog">Update</MudButton>
+                                        <MudButton Variant="Variant.Outlined" Color="Color.Warning" Style="border-radius:16px;" FullWidth="true" OnClick="ShowRevisionDialog">Send Revision</MudButton>
+                                    </MudStack>
+                                    <MudStack Row="true">
+                                        <MudButton Variant="Variant.Filled" Color="Color.Success" FullWidth="true" Style="border-radius:16px;" OnClick="ApproveBlog">Approve</MudButton>
+                                        <MudButton Variant="Variant.Filled" Color="Color.Error" FullWidth="true" Style="border-radius:16px;" OnClick="RejectBlog"> Reject</MudButton>
+                                    </MudStack>
+                                </MudStack>
+                            </MudItem>
+                        </MudGrid>
+
+
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+    </MudContainer>
+
+}
+<!-- ❌ Reject Dialog -->
+<MudDialog @bind-IsVisible="isRejectDialogOpen">
+    <DialogContent>
+        <MudText Typo="Typo.h6">Rejection Reason</MudText>
+        <MudTextField @bind-Value="rejectionReason" Lines="3" Variant="Variant.Outlined" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Error" OnClick="RejectBlog">Reject</MudButton>
+        <MudButton OnClick="() => isRejectDialogOpen = false">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- 🟡 Revision Dialog -->
+<MudDialog @bind-IsVisible="isRevisionDialogOpen">
+    <DialogContent>
+        <MudText Typo="Typo.h6">Revision Feedback</MudText>
+        <MudTextField @bind-Value="revisionNotes" Lines="3" Variant="Variant.Outlined" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Warning" OnClick="SendForRevision">Send Back</MudButton>
+        <MudButton OnClick="() => isRevisionDialogOpen = false">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code{
+    [Parameter] public int id { get; set; }
+    private BlogDetailModel blog = new();
+    private string EditorId = "blog-editor";
+    private string EditorContent = "";
+    private string Tag { get; set; } = string.Empty;
+    private string Comments = string.Empty;
+    private string pctag => getTagLine();
+    private string getTagLine()
+    {
+        if (blog?.Tags == null)
+        return "You can add 4 tags";
+    return blog.Tags.Count() > 0
+        ? $"You can Add {4 - blog.Tags.Count()} Tags"
+        : "You can Add 4 Tags";
+    }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("quillFunctions.create", EditorId);
+
+            await LoadBlog();
+
+            if (!string.IsNullOrEmpty(blog?.Content))
+            {
+                await JS.InvokeVoidAsync("quillFunctions.setContent", EditorId, blog.Content);
+            }
+            await ShowContent();
+        }
+    }
+    private void gotoblog()
+    {
+        var url = $"editor/blogs/{blog.Id}";
+        NavManager.NavigateTo(url, true);
+    }
+    private string GetAvatarInitial(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "?"; // default placeholder
+
+        return name.Trim()[0].ToString().ToUpper();
+    }
+    private async Task ShowContent()
+    {
+        EditorContent = await JS.InvokeAsync<string>("quillFunctions.getContent", EditorId);
+        StateHasChanged();
+    }
+    private void GoBack() => NavManager.NavigateTo("/editor");
+    private async Task LoadBlog()
+    {
+        blog = await EditorService.GetBlogByIdAsync(id);
+        if (blog == null)
+            blog = new BlogDetailModel();
+
+        blog.Tags ??= new List<string>();
+    }
+    public void Closed(MudChip<string> chip)
+    {
+        blog.Tags.Remove(chip.Text);
+    }
+    private List<string> _allDomain = new()
+    {
+        "Artifical Intelligence","Machine Learning","Travel","General","LifeStyle","Food","Health"
+    };
+    List<string> _allTags = new List<string>
+    {
+        "design","ux","reading","blazor","performance","dotnet","mongodb","database","nosql","travel","roadtrip","coast","lifestyle","habits","productivity","css",
+        "frontend","webdev","food","recipe","cooking","iot","arduino","electronics","product","onboarding", "career","wellbeing","engineering",
+        "photography","city","night","ml","data-science","statistics",
+        "personal-finance","budgeting","money","remote-work","team","communication","gardening","seasonal","plants","security","devops",
+        "best-practices","books",
+        "refactor","code-quality","fitness","running","outdoors","writing"
+    };
+    private Task<IEnumerable<string>> EnterCategory(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(Enumerable.Empty<string>()); // don't show dropdown when empty
+
+        var result = _allDomain
+            .Where(x => x.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        return Task.FromResult(result.AsEnumerable());
+    }
+    private Task<IEnumerable<string>> EnterTag(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(Enumerable.Empty<string>()); // don't show dropdown when empty
+
+        var result = _allTags
+            .Where(x => x.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        return Task.FromResult(result.AsEnumerable());
+    }
+    private void AddTags()
+    {
+        if (!string.IsNullOrWhiteSpace(Tag) && !blog.Tags.Contains(Tag) && blog.Tags.Count < 4)
+        {
+            blog.Tags.Add(Tag);
+        }
+        Tag = string.Empty;
+
+    }
+    private string rejectionReason = string.Empty;
+    private string revisionNotes = string.Empty;
+    private bool isRejectDialogOpen = false;
+    private bool isRevisionDialogOpen = false;
+    // 💾 Update Blog
+    private async Task UpdateBlog()
+    {
+        blog!.Content = await JS.InvokeAsync<string>("quillFunctions.getContent", EditorId);
+        
+
+        bool result = await EditorService.UpdateBlogAsync(blog);
+        Snackbar.Add(result ? "Blog updated successfully." : "Failed to update blog.",
+                     result ? Severity.Success : Severity.Error);
+    }
+
+    // ✅ Approve Blog
+    private async Task ApproveBlog()
+    {
+
+        bool result = await EditorService.ApproveBlogAsync(blog!.Id,Comments ?? "Approved successfully",blog);
+        Snackbar.Add(result ? "Blog approved." : "Approval failed.", result ? Severity.Success : Severity.Error);
+        if (result) NavManager.NavigateTo("/editor");
+    }
+
+    private async Task RejectBlog()
+    {
+        bool result = await EditorService.RejectBlogAsync(blog!.Id, Comments);
+        Snackbar.Add(result ? "Blog rejected." : "Rejection failed.",
+                     result ? Severity.Success : Severity.Error);
+
+        if (result)
+            NavManager.NavigateTo("/editor");
+    }
+
+
+    // 🟡 Send Back for Revision
+    private async Task SendForRevision()
+    {
+        bool result = await EditorService.SendBackForRevisionAsync(blog!.Id, blog.AuthorUid, revisionNotes, "general");
+        Snackbar.Add(result ? "Sent back for revision." : "Failed to send revision.", result ? Severity.Success : Severity.Error);
+        isRevisionDialogOpen = false;
+        if (result) NavManager.NavigateTo("/editor");
+    }
+    private void ShowRejectDialog() => isRejectDialogOpen = true;
+    private void ShowRevisionDialog() => isRevisionDialogOpen = true;
+}
+<style>
+    body {
+        background: #FBFAFF;
+    }
+</style>

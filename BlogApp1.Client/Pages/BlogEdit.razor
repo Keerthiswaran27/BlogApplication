@@ -1,0 +1,328 @@
+﻿@page "/admin/blog/edit/{BlogId:int}"
+@layout AdminLayout
+@using BlogApp1.Shared
+@using BlogApp1.Client.Services
+@inject AdminService AdminService
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+@using BlogApp1.Client.Components.Auth
+@inject NavigationManager NavigationManager
+<PageTitle>Edit Blog</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    @if (isLoading)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (Blog == null)
+    {
+        <MudText Color="Color.Error">Blog not found.</MudText>
+    }
+    else
+    {
+        <MudGrid Spacing="5" Class="mb-5">
+            <!-- Left Column -->
+            <MudItem md="5">
+                <MudPaper Class="pa-4" Style="background:rgba(233, 230, 245,0.4);border-radius:16px; display:flex; flex-direction:column; gap:16px;height:100%">
+                    <MudStack Style="padding:0">
+                        <MudContainer Style="height:250px;padding:0">
+                            <MudImage Src="@Blog.CoverImageUrl" style="width:100%;height:100%;border-radius:12px;" @onclick="OpenUploadDialog"></MudImage>
+                        </MudContainer>
+                        <MudStack Row="true" Class="mt-2" Justify="Justify.Center" Style="border:1px solid black;border-radius:16px;padding:10px;">
+                            <MudIcon Icon="@Icons.Material.Filled.ThumbUp" />
+                            <MudTextField @bind-Value="Blog.LikesCount" class="reading-css1" />
+                            <MudIcon Icon="@Icons.Material.Filled.RemoveRedEye" />
+                            <MudTextField @bind-Value="Blog.ViewCount" class="reading-css1" />
+                            <MudIcon Icon="@Icons.Material.Filled.MenuBook" />
+                            <MudTextField @bind-Value="Blog.ReadingTime" class="reading-css" />
+                            <MudText Style="margin-top:2px;">Minutes</MudText>
+                        </MudStack>
+                        <MudGrid Spacing="2">
+                            <MudItem md="6">
+                                <MudTextField @bind-Value="Blog.AuthorName" Label="AuthorName" Variant="Variant.Outlined" />
+
+                            </MudItem>
+                            <MudItem md="6">
+                                <MudAutocomplete T="string"
+                                                 @bind-Value="Blog.Domain"
+                                                 Label="Blog Domain"
+                                                 Variant="Variant.Outlined"
+                                                 PlaceHolder="Category of the Blog"
+                                                 SearchFunc="EnterCategory"
+                                                 ResetValueOnEmptyText="true"
+                                                 Dense="true" />
+                            </MudItem>
+                            <MudItem md="6">
+                                <MudDatePicker Label="Posted On" Editable="true" @bind-Date="Blog.CreatedAt" Placeholder="Select Date" Variant="Variant.Outlined" />
+                            </MudItem>
+                            <MudItem md="6">
+                                <MudDatePicker Label="Published On" Editable="true" @bind-Date="Blog.PublishedAt" Placeholder="Select Date" Variant="Variant.Outlined" />
+                            </MudItem>
+
+                            <MudItem md="6">
+                                <MudAutocomplete T="string"
+                                                 @bind-Value="Tag"
+                                                 Label="Blog Tags"
+                                                 Variant="Variant.Outlined"
+                                                 PlaceHolder="@pctag"
+                                                 Adornment="Adornment.End"
+                                                 AdornmentIcon="@Icons.Material.Sharp.Add"
+                                                 OnAdornmentClick="AddTags"
+                                                 SearchFunc="EnterTag"
+                                                 ResetValueOnEmptyText="true"
+                                                 Dense="true"
+                                                 class="mb-2" />
+                            </MudItem>
+                            <MudItem md="6">
+                                <MudSelect Label="Status" @bind-Value="Blog.Status" Variant="Variant.Outlined">
+                                    <MudSelectItem Value="@("approved")">Approved</MudSelectItem>
+                                    <MudSelectItem Value="@("pending")">Pending</MudSelectItem>
+                                    <MudSelectItem Value="@("rejected")">Rejected</MudSelectItem>
+                                </MudSelect>
+
+                            </MudItem>
+
+                            <MudItem md="12">
+                                <MudTextField T="string" class="mb-4" @bind-text="Blog.Slug" Label="Slug" Placeholder="Slug For SEO" Variant="Variant.Outlined" AutoGrow />
+                                <MudTextField T="string" Class="mb-4" Label="Meta Description" Placeholder="Summary of ur Blog" Variant="Variant.Outlined" @bind-text="Blog.MetaDescription" Lines="2" />
+                            </MudItem>
+                            <MudItem md="12">
+                                <MudChipSet T="string" AllClosable OnClose="Closed">
+                                    @if (Blog.Tags.Count > 0)
+                                    {
+                                        @foreach (var value in Blog.Tags)
+                                        {
+                                            <MudChip Text="@value" Color="Color.Dark" Variant="Variant.Outlined"></MudChip>
+                                        }
+                                    }
+                                </MudChipSet>
+
+                            </MudItem>
+                        </MudGrid>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+            <MudItem md="7">
+                <MudPaper Class="pa-4" Style="background:rgba(233, 230, 245,0.4);border-radius:16px; display:flex; flex-direction:column; gap:16px;height:100%">
+                    <MudText Typo="Typo.h3" Align="Align.Center" style="font-weight:600;color:#272145;">EDIT BLOG</MudText>
+
+        
+                    <MudContainer>
+                        <MudTextField Typo="Typo.h6" @bind-Value="Blog.Title" Label="Title" Variant="Variant.Outlined" Class="mb-4" AutoGrow/>
+
+                        <MudPaper Style="background-color:#EDE9FE">
+                            <div id="@EditorId" style="height:500px;width:100%;background:rgba(233, 230, 245);"></div>
+
+                        </MudPaper>
+                        <MudStack Row="true" Class="mt-5">
+                            
+                            <MudSpacer/>
+                            <MudButton Variant="Variant.Outlined" Style="border-radius:16px;" OnClick="CancelUpdate" Color="Color.Error" >Cancel</MudButton>
+                            <MudButton Variant="Variant.Outlined" Style="border-radius:16px;" OnClick="UpdateBlog">update blog</MudButton>
+                        </MudStack>
+                    </MudContainer>
+                    
+                </MudPaper>
+            </MudItem>
+
+            <!-- Right Column -->
+            
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public int BlogId { get; set; }
+
+    private string Tag { get; set; } = string.Empty;
+
+    private string pctag => getTagLine();
+    private string getTagLine()
+    {
+        if(Blog.Tags.Count()>0)
+        {
+            return $"You can Add {4 - Blog.Tags.Count()} Tags";
+        }
+        else
+        {
+            return "You can Add 4 Tags";
+        }
+    }
+
+    private string EditorId = "blog-editor";
+    private bool isLoading = false;
+    private BlogDto Blog = new()
+    {
+        Tags = new List<string>() // ensure not null
+    };
+    private string EditorContent = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("quillFunctions.create", EditorId);
+
+            await LoadBlog();
+
+            if (!string.IsNullOrEmpty(Blog?.Content))
+            {
+                await JS.InvokeVoidAsync("quillFunctions.setContent", EditorId, Blog.Content);
+            }
+            await ShowContent();
+        }
+    }
+    private async Task LoadBlog()
+    {
+        try
+        {
+            Blog = await AdminService.GetBlogById(BlogId);
+
+            if (Blog == null)
+            {
+                Blog = new BlogDto { Title = "⚠️ Blog not found", Content = "<p>No content available.</p>", Tags = new List<string>() };
+            }
+
+            // ✅ Always make sure Tags is not null
+            Blog.Tags ??= new List<string>();
+            Console.WriteLine($"status:{Blog.Status}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error loading blog: {ex.Message}");
+            Blog = new BlogDto
+            {
+                Title = "Error",
+                Content = $"<p style='color:red;'>{ex.Message}</p>",
+                Tags = new List<string>()
+            };
+        }
+    }
+    private async Task UpdateBlog()
+    {
+        await ShowContent();
+        Blog.Content = EditorContent;
+        bool result = await AdminService.UpdateBlogAsync(Blog);
+        if(result)
+        {
+            Snackbar.Add("Blog updated successfully!", Severity.Success);
+            NavigationManager.NavigateTo("/admin/blogs");
+        }
+    }
+    private void CancelUpdate()
+    {
+        NavigationManager.NavigateTo("/admin/blogs");
+    }
+
+    private async Task ShowContent()
+    {
+        EditorContent = await JS.InvokeAsync<string>("quillFunctions.getContent", EditorId);
+        StateHasChanged();
+    }
+    private List<string> _allDomain = new()
+    {
+        "Artifical Intelligence","Machine Learning","Travel","General","LifeStyle","Food","Health"
+    };
+    List<string> _allTags = new List<string>
+    {
+        "design","ux","reading","blazor","performance","dotnet","mongodb","database","nosql","travel","roadtrip","coast","lifestyle","habits","productivity","css",
+        "frontend","webdev","food","recipe","cooking","iot","arduino","electronics","product","onboarding", "career","wellbeing","engineering",
+        "photography","city","night","ml","data-science","statistics",
+        "personal-finance","budgeting","money","remote-work","team","communication","gardening","seasonal","plants","security","devops",
+        "best-practices","books",
+        "refactor","code-quality","fitness","running","outdoors","writing"
+    };
+    public void Closed(MudChip<string> chip)
+    {
+        Blog.Tags.Remove(chip.Text);
+        Console.WriteLine(Blog.CreatedAt);
+    }
+    private Task<IEnumerable<string>> EnterCategory(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(Enumerable.Empty<string>()); // don't show dropdown when empty
+
+        var result = _allDomain
+            .Where(x => x.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        return Task.FromResult(result.AsEnumerable());
+    }
+    private Task<IEnumerable<string>> EnterTag(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(Enumerable.Empty<string>()); // don't show dropdown when empty
+
+        var result = _allTags
+            .Where(x => x.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        return Task.FromResult(result.AsEnumerable());
+    }
+    private void AddTags()
+    {
+        if (!string.IsNullOrWhiteSpace(Tag) && !Blog.Tags.Contains(Tag) && Blog.Tags.Count<4)
+        {
+            Blog.Tags.Add(Tag);
+        }
+        Tag = string.Empty;
+
+    }
+    private string UploadedUrl;
+    [Inject] IDialogService DialogService { get; set; } = default!;
+
+    private async Task OpenUploadDialog()
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<UploadImageDialog>("Upload Image", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is string url)
+        {
+            UploadedUrl = url; // ✅ Receive the uploaded image URL
+            Blog.CoverImageUrl = url;
+        }
+    }
+}
+<style>
+    body {
+        background-color: #FBFAFF;
+    }
+
+    .reading-css {
+        width: 10px !important; /* Force the MudTextField container */
+        min-width: 10px !important;
+        max-width: 10px !important;
+    }
+
+        .reading-css .mud-input-control {
+            width: 100% !important; /* Fill the parent container */
+        }
+
+        .reading-css .mud-input-root {
+            width: 100% !important;
+        }
+
+        .reading-css .mud-input-slot {
+            width: 100% !important;
+        }
+    .reading-css1 {
+        width: 40px !important; /* Force the MudTextField container */
+        min-width: 40px !important;
+        max-width: 40px !important;
+    }
+
+        .reading-css1 .mud-input-control {
+            width: 100% !important; /* Fill the parent container */
+        }
+
+        .reading-css1 .mud-input-root {
+            width: 100% !important;
+        }
+
+        .reading-css1 .mud-input-slot {
+            width: 100% !important;
+        }
+
+   
+</style>

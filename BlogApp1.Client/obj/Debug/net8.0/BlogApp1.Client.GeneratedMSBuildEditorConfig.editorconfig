@@ -1,0 +1,218 @@
+is_global = true
+build_property.EnableAotAnalyzer = 
+build_property.EnableSingleFileAnalyzer = 
+build_property.EnableTrimAnalyzer = false
+build_property.IncludeAllContentForSelfExtract = 
+build_property.MudDebugAnalyzer = 
+build_property.MudAllowedAttributePattern = 
+build_property.MudAllowedAttributeList = 
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = false
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = browser
+build_property.RootNamespace = BlogApp1.Client
+build_property.RootNamespace = BlogApp1.Client
+build_property.ProjectDir = C:\Users\KEERTHI\source\repos\WiseWork\BlogApp1.Client\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = false
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\Users\KEERTHI\source\repos\WiseWork\BlogApp1.Client
+build_property._RazorSourceGeneratorDebug = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Components/Auth/AddUserDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXEFkZFVzZXJEaWFsb2cucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Components/Auth/EditUrlDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXEVkaXRVcmxEaWFsb2cucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Components/Auth/LoginDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXExvZ2luRGlhbG9nLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Components/Auth/ProfileDetailsDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXFByb2ZpbGVEZXRhaWxzRGlhbG9nLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Components/Auth/RegisterDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXFJlZ2lzdGVyRGlhbG9nLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Components/Auth/SimpleInputDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXFNpbXBsZUlucHV0RGlhbG9nLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Components/Auth/UploadImageDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXFVwbG9hZEltYWdlRGlhbG9nLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Components/Auth/ViewImageDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXFZpZXdJbWFnZURpYWxvZy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Layout/AdminLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XEFkbWluTGF5b3V0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Layout/AuthorLayour.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XEF1dGhvckxheW91ci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Layout/EditorLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XEVkaXRvckxheW91dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE1haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Layout/ReaderLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XFJlYWRlckxheW91dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Admin.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW4ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/AdminNotification.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5Ob3RpZmljYXRpb24ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/AiBlogGenerator.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWlCbG9nR2VuZXJhdG9yLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Author.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aG9yLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/AuthorHome.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aG9ySG9tZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/BlogDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQmxvZ0RldGFpbC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/BlogEdit.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQmxvZ0VkaXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/BlogPanel.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQmxvZ1BhbmVsLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/BlogView.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQmxvZ1ZpZXcucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Category.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2F0ZWdvcnkucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Chat.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2hhdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/CommentEdit.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ29tbWVudEVkaXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/CommentPanel.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ29tbWVudFBhbmVsLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/DomainView.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRG9tYWluVmlldy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Editor/BlogReview.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRWRpdG9yXEJsb2dSZXZpZXcucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Editor/Dummy.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRWRpdG9yXER1bW15LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Editor/EditorAnalytics.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRWRpdG9yXEVkaXRvckFuYWx5dGljcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Editor/EditorDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRWRpdG9yXEVkaXRvckRhc2hib2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Editor/FeedbackCenter.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRWRpdG9yXEZlZWRiYWNrQ2VudGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Editor/RevisionHistory.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRWRpdG9yXFJldmlzaW9uSGlzdG9yeS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Home.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/ImageUpload.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW1hZ2VVcGxvYWQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Library.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTGlicmFyeS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Notification.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTm90aWZpY2F0aW9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Profile.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZmlsZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Reader.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVhZGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/RedirectToLogin.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVkaXJlY3RUb0xvZ2luLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Sample.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2FtcGxlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/SampleChart.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2FtcGxlQ2hhcnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/Search.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2VhcmNoLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/UserPanel.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlclBhbmVsLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/UserProfileUpdate.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlclByb2ZpbGVVcGRhdGUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/Pages/UserView.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlclZpZXcucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/KEERTHI/source/repos/WiseWork/BlogApp1.Client/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 

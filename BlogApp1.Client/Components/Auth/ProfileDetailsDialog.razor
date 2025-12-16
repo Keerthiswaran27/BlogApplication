@@ -1,0 +1,62 @@
+﻿@using MudBlazor
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="valid">
+            <MudText Typo="Typo.h6">Complete your Profile</MudText>
+
+            <MudTextField Label="Nickname" @bind-Value="Nickname" Required="true" />
+
+            <MudSelect T="string" Label="Country" @bind-Value="Country" Required="true">
+                @foreach (var country in Countries)
+                {
+                    <MudSelectItem Value="@country">@country</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudDatePicker Label="Date of Birth" @bind-Date="Dob" Required="true" />
+
+            <MudCheckBox T="bool" @bind-Checked="WantsToBeAuthor" Label="I’m interested in being an author" />
+
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="SubmitAsync" Disabled="!valid">Continue</MudButton>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private MudForm form;
+    private bool valid;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Inject] IDialogService DialogService { get; set; }
+    private string Nickname = string.Empty;
+    private string Country = string.Empty;
+    private DateTime? Dob;
+    private bool WantsToBeAuthor = false;
+
+    private List<string> Countries = new() {
+        "India", "United States", "United Kingdom", "Germany", "France", "Australia", "Canada"
+        // You can load a full list from a static JSON if needed
+    };
+
+    private async Task SubmitAsync()
+    {
+        await form.Validate();
+        if (!form.IsValid) return;
+
+        // var profile = new UserProfileModel
+        // {
+        //     Nickname = Nickname,
+        //     Country = Country,
+        //     Dob = Dob ?? DateTime.MinValue,
+        //     IsAuthor = WantsToBeAuthor
+        // };
+
+        // MudDialog.Close(DialogResult.Ok(profile));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+    
+}

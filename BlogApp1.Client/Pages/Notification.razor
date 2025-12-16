@@ -1,0 +1,72 @@
+﻿@page "/blogeditor/{Id:int}"
+@inject IJSRuntime JS
+@using BlogApp1.Client.Services
+@using BlogApp1.Shared
+@inject AdminService BlogService   
+
+<MudPaper Class="p-6 max-w-4xl mx-auto mt-10" Elevation="6">
+    <MudText Typo="Typo.h5" Class="mb-2">📰 Blog Title:</MudText>
+    <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-4">@Blog?.Title</MudText>
+    <MudText>@Blog?.AuthorName</MudText>
+    <div id="@EditorId" style="height: 300px; background-color:white; border-radius: 8px;"></div>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" OnClick="ShowContent">
+        Show Edited Content
+    </MudButton>
+
+    <MudDivider Class="my-4" />
+
+    <MudText Typo="Typo.h6" GutterBottom="true">Editor Output:</MudText>
+    <MudPaper Class="p-3 bg-grey-lighten-4">
+        <div>@((MarkupString)EditorContent)</div>
+    </MudPaper>
+</MudPaper>
+
+@code {
+
+    [Parameter] public int Id { get; set; }
+
+    private string EditorId = "quillEditor";
+    private BlogDto? Blog;
+    private string EditorContent = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("quillFunctions.create", EditorId);
+
+            await LoadBlog();
+
+            if (!string.IsNullOrEmpty(Blog?.Content))
+            {
+                await JS.InvokeVoidAsync("quillFunctions.setContent", EditorId, Blog.Content);
+            }
+            await ShowContent();
+        }
+    }
+
+    private async Task LoadBlog()
+    {
+        try
+        {
+            Blog = await BlogService.GetBlogById(Id);
+
+            if (Blog == null)
+            {
+                Blog = new BlogDto { Title = "⚠️ Blog not found", Content = "<p>No content available.</p>" };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error loading blog: {ex.Message}");
+            Blog = new BlogDto { Title = "Error", Content = $"<p style='color:red;'>{ex.Message}</p>" };
+        }
+    }
+
+    private async Task ShowContent()
+    {
+        EditorContent = await JS.InvokeAsync<string>("quillFunctions.getContent", EditorId);
+        StateHasChanged();
+    }
+}

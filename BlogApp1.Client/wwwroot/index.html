@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BlogApp1.Client</title>
+    <meta property="og:title" content="My Blog" />
+    <meta property="og:description" content="Best blogs on tech" />
+    <meta property="og:image" content="/default-image.jpg" />
+    <meta property="og:type" content="website" />
+    <base href="/" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="chat.css" />
+    <!-- If you add any scoped CSS files, uncomment the following to load them
+    <link href="BlogApp1.Client.styles.css" rel="stylesheet" /> -->
+    <link href="manifest.webmanifest" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <!--for apex chart-->
+    <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@latest/dist/apexcharts.css">-->
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="'https://fonts.googleapis.com/css2?family=Satoshi:wght@500;700;900&display=swap'" rel="stylesheet">
+
+
+</head>
+
+<body>
+    <div id="app">
+        <svg class="loading-progress">
+            <circle r="40%" cx="50%" cy="50%" />
+            <circle r="40%" cx="50%" cy="50%" />
+        </svg>
+        <div class="loading-progress-text"></div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <script src="_content/ChartJs.Blazor.Fork/ChartJsBlazorInterop.js"></script>
+
+
+    <!-- Custom wrapper -->
+    <script>
+        window.quillFunctions = {
+            editors: {},
+
+            create: function (editorId) {
+                // Destroy old editor if it exists (prevents duplicates / invalid container)
+                if (this.editors[editorId]) {
+                    delete this.editors[editorId];
+                }
+
+                var container = document.getElementById(editorId);
+                if (!container) {
+                    console.warn("Quill container not found:", editorId);
+                    return;
+                }
+                const toolbarOptions = [
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['blockquote', 'code-block'],
+                    [{ 'header': 1 }, { 'header': 2 }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    [{ 'script': 'sub' }, { 'script': 'super' }],
+                    [{ 'indent': '-' }, { 'indent': '+' }],
+                    [{ 'direction': 'rtl' }],
+                    [{ 'size': ['small', false, 'large', 'huge'] }],
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'font': [] }],
+                    [{ 'align': [] }],
+                    ['clean'],
+                    ['link', 'image']
+                ];
+                var quill = new Quill(container, {
+                    theme: 'snow',
+                    //modules: { toolbar: toolbarOptions }
+                });
+
+                this.editors[editorId] = quill;
+            },
+
+            getContent: function (editorId) {
+                return this.editors[editorId]?.root.innerHTML || "";
+            },
+
+            setContent: function (editorId, html) {
+                if (this.editors[editorId]) {
+                    this.editors[editorId].root.innerHTML = html;
+                }
+            }
+        };
+
+    </script>
+    <!-- Then MudBlazor -->
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <!-- Finally Blazor runtime -->
+    <script src="_framework/blazor.webassembly.js"></script>
+
+</body>
+
+
+</html>

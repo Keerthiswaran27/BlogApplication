@@ -1,0 +1,284 @@
+﻿@page "/admin/profileedit/{UserId:guid}"
+@using BlogApp1.Shared
+@using BlogApp1.Client.Services
+@inject AdminService AdminService
+@layout AdminLayout
+@inject NavigationManager NavManager
+@inject ISnackbar Snackbar
+@using BlogApp1.Client.Components.Auth
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    @if (isLoading)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (user == null)
+    {
+        <MudText Color="Color.Error">User not found.</MudText>
+    }
+    else
+    {
+        <MudGrid Spacing="5" Class="mt-5">
+            <!-- Left Column -->
+            <MudItem md="4">
+                <MudPaper Class="pa-4" Style="background:rgba(233, 230, 245,0.4);border-radius:16px; display:flex; flex-direction:column; align-items:center; gap:16px;height:100%">
+                    <MudGrid Spacing="0">
+                        <MudItem md="4">
+                            <MudContainer Style="display:flex;justify-content:center;align-items:center;">
+                                @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                                {
+                                    <MudAvatar Style="height:100px; width:100px; cursor:pointer;" @onclick="() => OpenAvatarDialog(user.AvatarUrl)">
+                                        <MudImage Src="@user.AvatarUrl" />
+                                    </MudAvatar>
+                                }
+                                else
+                                {
+                                    <MudAvatar Style="height:100px; width:100px; font-size:3rem;background-color:#3f51b5;color:white;">
+                                        @user.FullName.First()
+                                    </MudAvatar>
+                                }
+                            </MudContainer>
+                        </MudItem>
+                        <MudItem md="4">
+                            <MudContainer Style="display:flex;justify-content:center;align-items:center;height:100%;">
+                                <MudStack>
+                                    <MudText>Following</MudText>
+                                    <MudText Align="Align.Center">@(user.Following?.Count() ?? 0)</MudText>
+                                </MudStack>
+                            </MudContainer>
+                        </MudItem>
+                        <MudItem md="4">
+                            <MudContainer Style="display:flex;justify-content:center;align-items:center;height:100%;">
+                                <MudStack>
+                                    <MudText>Followers</MudText>
+                                    <MudText Align="Align.Center">@(user.Follower?.Count() ?? 0)</MudText>
+                                </MudStack>
+                            </MudContainer>
+                        </MudItem>
+                        <MudItem md="4">
+                            <MudText Align="Align.Center" Style="cursor:pointer;" class="mt-2" @onclick="OpenUploadDialog"><u>Edit Avatar</u></MudText>
+                        </MudItem>
+                    </MudGrid>
+                    <MudDivider Style="height:3px;"/>
+                    <MudStack Row="true" Spacing="3">
+                        <MudIconButton Icon="@Icons.Custom.Brands.Twitter" Color="Color.Primary" Size="Size.Medium"
+                                       OnClick="@(() => OpenEditDialog("Twitter", user.Twitter))" />
+
+                        <MudIconButton Icon="@Icons.Custom.Brands.LinkedIn" Color="Color.Primary" Size="Size.Medium"
+                                       OnClick="@(() => OpenEditDialog("LinkedIn", user.LinkedIn))" />
+
+                        <MudIconButton Icon="@Icons.Custom.Brands.Instagram" Color="Color.Primary" Size="Size.Medium"
+                                       OnClick="@(() => OpenEditDialog("Instagram", user.Instagram))" />
+
+                        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Primary" Size="Size.Medium"
+                                       OnClick="@(() => OpenEditDialog("GitHub", user.Github))" />
+
+                        <MudIconButton Icon="@Icons.Custom.Brands.Facebook" Color="Color.Primary" Size="Size.Medium"
+                                       OnClick="@(() => OpenEditDialog("Medium", user.Medium))" />
+                    </MudStack>
+                    <MudDivider/>
+                    <MudGrid>
+                        <MudItem md="6">
+                            <MudContainer>
+                                <MudStack>
+                                    <MudText Align="Align.Center">Post Count</MudText>
+                                    <MudText Align="Align.Center">@user.PostCount</MudText>
+                                </MudStack>
+                            </MudContainer>
+                        </MudItem>
+                        <MudItem md="6">
+                            <MudContainer>
+                                <MudStack>
+                                    <MudText Align="Align.Center">View Count</MudText>
+                                    <MudText Align="Align.Center">@user.ViewCount</MudText>
+                                </MudStack>
+                            </MudContainer>
+                        </MudItem>
+                    </MudGrid>
+                    <MudDivider />
+                    <MudContainer>
+                        <MudText Align="Align.Center" Typo="Typo.h6">Roles</MudText>
+                         <MudStack Class="mt-2">
+                            <MudStack Row="true">
+                                <MudCheckBox T="bool" Value="@user.Roles.Contains(reader)" ValueChanged="@(checkedValue => ToggleRole(reader, checkedValue))" Color="Color.Secondary" Size="Size.Medium" >Reader</MudCheckBox>
+                                <MudSpacer/>
+                                <MudCheckBox T="bool" Value="@user.Roles.Contains(author)" ValueChanged="@(checkedValue => ToggleRole(author, checkedValue))" Color="Color.Secondary" Size="Size.Medium" >Author</MudCheckBox>
+
+                            </MudStack>
+                            <MudStack Row="true">
+                                <MudCheckBox T="bool" Value="@user.Roles.Contains(editor)" ValueChanged="@(checkedValue => ToggleRole(editor, checkedValue))" Color="Color.Secondary" Size="Size.Medium" >Editor</MudCheckBox>
+                                <MudSpacer/>
+                                <MudCheckBox T="bool" Value="@user.Roles.Contains(admin)" ValueChanged="@(checkedValue => ToggleRole(admin, checkedValue))" Color="Color.Secondary" Size="Size.Medium" >Admin</MudCheckBox>
+                            </MudStack>
+                        </MudStack>
+                    </MudContainer>
+
+                </MudPaper>
+            </MudItem>
+
+            <!-- Right Column -->
+            <MudItem md="8">
+                <MudPaper Class="pa-4" Style="background:rgba(233, 230, 245,0.4);border-radius:16px; display:flex; flex-direction:column; gap:16px;height:100%">
+                    <MudText Typo="Typo.h3" Align="Align.Center" style="font-weight:450;font-family: 'Pacifico', cursive;color:#272145;">Edit Profile</MudText>
+                    <MudGrid Spacing="2">
+                        <MudItem md="6">
+                            <MudTextField @bind-Value="user.FullName" Label="Username" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem md="6">
+                            <MudDatePicker Label="Joined On" Editable="true" @bind-Date="user.CreatedAt" Placeholder="Select Date" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem md="6">
+                            <MudTextField @bind-Value="user.Email" Label="Email" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem md="6">
+                            <MudTextField @bind-Value="user.Location" Label="Location" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem md="12">
+                            <MudTextField @bind-Value="user.Bio" Label="Bio" Lines="2" Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+                    <MudStack Row="true" Justify="Justify.FlexStart" Spacing="3" Class="mt-4">
+                        <MudSwitch @bind-Value="user.IsActive" Color="Color.Tertiary" UncheckedColor="Color.Error"> status @(user.IsActive ? "Active" : "Inactive")</MudSwitch>
+                        <MudSwitch @bind-Value="user.IsVerified" Color="Color.Tertiary" UncheckedColor="Color.Error">@(user.IsVerified ? "Verified" : "Unverified")</MudSwitch>
+                        <MudSwitch @bind-Value="user.NewsletterSubscribed" Color="Color.Tertiary" UncheckedColor="Color.Error">@(user.NewsletterSubscribed ? "NewsLetter Subscribed" : "NewsLetter Unsubscribed")</MudSwitch>
+                        <MudSwitch @bind-Value="user.Theme" Color="Color.Tertiary" UncheckedColor="Color.Error">@(user.Theme ? "Dark" : "Light")</MudSwitch>
+
+                    </MudStack>
+                     
+                    <!-- Buttons -->
+                    <MudStack Row="true" dir="rtl"  Spacing="2" Class="mt-4">
+                        <MudButton Variant="Variant.Filled" Style="border-radius:16px;background-color:#3f51b5;color:white;width:150px;" OnClick="SaveUser">Save</MudButton>
+                        <MudButton Variant="Variant.Outlined" Style="width:150px;border-radius:16px;" Color="Color.Error" OnClick="@(() => NavManager.NavigateTo($"/admin/users"))">Cancel</MudButton>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public Guid UserId { get; set; }
+
+    private BlogUserDto? user;
+    private string selectedRole = "reader";
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            user = await AdminService.GetUserByIdAsync(UserId);
+            if (user?.Roles != null && user.Roles.Length > 0)
+                selectedRole = user.Roles[0];
+        }
+        catch
+        {
+            user = null;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    private string reader = "Reader";
+    private string author = "Author";
+    private string editor = "Editor";
+    private string admin = "Admin";
+    private async Task SaveUser()
+    {
+        if (user != null)
+        {
+
+            var success = await AdminService.UpdateUserAsync(user);
+            if(success)
+            {
+                Snackbar.Add("User updated successfully!", Severity.Success);
+                NavManager.NavigateTo($"/admin/userview/{UserId}");
+            }
+        }
+    }
+    [Inject] IDialogService DialogService { get; set; } = default!;
+    private async Task OpenEditDialog(string platform, string currentUrl)
+    {
+        var parameters = new DialogParameters
+        {
+            { "PlatformName", platform },
+            { "CurrentUrl", currentUrl }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+        var dialog = DialogService.Show<EditUrlDialog>($"Edit {platform} URL", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is string newUrl)
+        {
+            switch (platform)
+            {
+                case "Twitter": user.Twitter = newUrl; break;
+                case "LinkedIn": user.LinkedIn = newUrl; break;
+                case "Instagram": user.Instagram = newUrl; break;
+                case "GitHub": user.Github = newUrl; break;
+                case "Medium": user.Medium = newUrl; break;
+            }
+            StateHasChanged();
+            Console.WriteLine(newUrl);
+        }
+    }
+    private async Task ToggleRole(string Role, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!user.Roles.Contains(Role))
+            {
+                var arr = user.Roles.ToList();
+                arr.Add(Role);
+                user.Roles = arr.ToArray();
+            }
+        }
+        else
+        {
+            if (user.Roles.Contains(Role))
+            {
+                var arr = user.Roles.ToList();
+                arr.Remove(Role);
+                user.Roles = arr.ToArray();
+            }
+        }
+        foreach(var c in user.Roles)
+        {
+            Console.WriteLine(c);
+        }
+    }
+    private string UploadedUrl;
+
+    private async Task OpenUploadDialog()
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<UploadImageDialog>("Upload Image", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is string url)
+        {
+            UploadedUrl = url; // ✅ Receive the uploaded image URL
+            user.AvatarUrl = url;
+        }
+    }
+    private async Task OpenAvatarDialog(string? avatarUrl)
+    {
+        if (string.IsNullOrEmpty(avatarUrl))
+            return; // fallback, nothing to show
+
+        var parameters = new DialogParameters
+        {
+            { "ImageUrl", avatarUrl }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small };
+        DialogService.Show<ViewImageDialog>("Avatar Preview", parameters, options);
+    }
+}
+<style>
+    body{
+        background-color: #FBFAFF;
+    }
+</style>

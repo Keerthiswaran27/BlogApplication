@@ -1,0 +1,26 @@
+﻿@using MudBlazor
+
+<MudDialog Style="background-color: #FBFAFF;">
+    <DialogContent>
+
+        @if (!string.IsNullOrEmpty(ImageUrl))
+        {
+            <MudPaper Outlined Class="d-flex justify-center align-center pa-2">
+                <MudImage Src="@ImageUrl" Alt="Image Preview" Style="max-width:100%; max-height:400px;" />
+            </MudPaper>
+        }
+        else
+        {
+            <MudText Color="Color.Error">No image URL provided.</MudText>
+        }
+    </DialogContent>
+
+    
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public string ImageUrl { get; set; } = string.Empty;
+
+    private void Close() => MudDialog.Close();
+}

@@ -1,0 +1,24 @@
+﻿.chat-container {
+    height: 90vh;
+    border-radius:16px;
+    padding:10px;
+}
+
+    .chat-container::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .chat-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 4px;
+    }
+
+
+.bot-message {
+    background: #f8f9fa !important;
+    border-radius: 18px !important;
+}

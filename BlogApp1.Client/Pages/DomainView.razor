@@ -1,0 +1,45 @@
+﻿@page "/domain"
+@layout ReaderLayout
+@using MudBlazor
+
+<MudCarousel TData="object" Class="rounded-lg shadow-lg" Style="max-width: 900px; margin:auto;" 
+             ShowArrows="true" AutoCycle="false" 
+             ShowBullets="false" 
+             Height="250px">
+
+    @foreach (var domain in Domains)
+    {
+        <MudCarouselItem>
+            <MudCard Class="cursor-pointer hover:shadow-xl transition duration-300"
+                     Style="width:250px; height:230px;" 
+                     @onclick="@(() => NavigateToDomain(domain.Id))">
+                <MudCardMedia Image="@domain.ImageUrl" Height="150" />
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Align="Align.Center">@domain.Name</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudCarouselItem>
+    }
+</MudCarousel>
+
+@code {
+    record Domain(int Id, string Name, string ImageUrl);
+
+    List<Domain> Domains = new()
+    {
+        new(1, "Technology", "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80"),
+        new(2, "Travel", "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80"),
+        new(3, "Food", "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=900&q=80"),
+        new(4, "Lifestyle", "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80"),
+        new(5, "Health", "https://images.unsplash.com/photo-1576765607924-3d6c7a8d3c5a?auto=format&fit=crop&w=900&q=80"),
+        new(6, "Education", "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80")
+    };
+
+    [Inject] NavigationManager Nav { get; set; }
+
+    void NavigateToDomain(int id)
+    {
+        // Navigate to blog list page with query param
+        Nav.NavigateTo($"/blogs/{id}");
+    }
+}

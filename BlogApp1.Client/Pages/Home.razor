@@ -1,0 +1,64 @@
+﻿@page "/"
+@using BlogApp1.Client.Components.Auth
+@inject IDialogService DialogService
+
+@inject HttpClient Http
+<PageTitle>Home</PageTitle>
+
+<MudGrid Gutter="true">
+    <MudItem md="6">
+        <MudContainer Class="mt-4">
+            <MudText Typo="Typo.h3" Align="Align.Center" Class="cd txt-clr text-pink   mb-2" Style="font-size: 7rem; font-weight: bold;">
+                MIDDLE MAN
+            </MudText>            
+            <MudText Typo="Typo.h6" Align="Align.Center">At Middle Man, we bring voices together — connecting writers and readers through stories, insights, and inspiration.</MudText>
+        </MudContainer>
+        <MudContainer class="ch mt-3">
+            <MudButton Variant="Variant.Filled" Class="ab" Style="background-color:#361d32;color:white;border-radius:16px;" OnClick="OpenLogin">Get Started</MudButton>
+        </MudContainer>
+    </MudItem>
+    <MudItem md="6">
+        <MudContainer Class="ch">
+            <MudImage Src="discuss.png" alt="blog image" class="main mt-8"></MudImage>
+        </MudContainer>
+    </MudItem>
+</MudGrid>
+
+
+
+@code {
+    bool topdrawer = true;
+    private void OpenLogin()
+    {
+        var parameters = new DialogParameters();
+        var options = new DialogOptions()
+        {
+            MaxWidth = MaxWidth.Small,
+            BackdropClick = true,
+            CloseButton = true,
+            BackgroundClass = "dialog-backdrop-blur"
+        };
+
+        DialogService.Show<LoginDialog>("", parameters, options);
+    }
+}
+<style>
+    body{
+        background-color: #f1e8e6;
+    }
+    .main{
+        height:400px;
+        width:400px;
+    }
+    .ch{
+        display:flex;
+        justify-content:center;
+        align-items:center;
+    }
+    .ab:hover{
+        background-color: #361d32;
+    }
+    .cd{
+        color: #361d32;
+    }
+</style>

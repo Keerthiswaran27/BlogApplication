@@ -1,0 +1,39 @@
+﻿@page "/editor/revisions/{BlogId:int}"
+@layout EditorLayout
+@inject EditorService EditorService
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudText Typo="Typo.h5">🕒 Revision History</MudText>
+
+    <MudTable Items="@revisions" Hover="true">
+        <HeaderContent>
+            <MudTh>Version</MudTh>
+            <MudTh>Created</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.VersionNo</MudTd>
+            <MudTd>@context.CreatedAt.ToLocalTime().ToString("g")</MudTd>
+            <MudTd>
+                <MudButton OnClick="() => RestoreVersion(context.Id)" Color="Color.Primary" Variant="Variant.Filled">Restore</MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudContainer>
+
+@code {
+    [Parameter] public int BlogId { get; set; }
+    private List<RevisionModel>? revisions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        revisions = await EditorService.GetRevisionsAsync(BlogId);
+    }
+
+    private async Task RestoreVersion(int id)
+    {
+        var success = await EditorService.RestoreRevisionAsync(id);
+        if (success)
+            await OnInitializedAsync(); // Reload list
+    }
+}

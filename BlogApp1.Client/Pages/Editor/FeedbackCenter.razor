@@ -1,0 +1,39 @@
+﻿@page "/editor/feedback"
+@layout EditorLayout
+@inject EditorService EditorService
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+    <MudText Typo="Typo.h5">💬 Feedback Center</MudText>
+
+    <MudTable Items="@feedbackList" Hover="true" Dense="true">
+        <HeaderContent>
+            <MudTh>Blog ID</MudTh>
+            <MudTh>Message</MudTh>
+            <MudTh>Type</MudTh>
+            <MudTh>Date</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.BlogId</MudTd>
+            <MudTd>@context.Message</MudTd>
+            <MudTd>@context.FeedbackType</MudTd>
+            <MudTd>@context.CreatedAt.ToLocalTime().ToString("g")</MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudContainer>
+
+@code {
+    private List<FeedbackModel>? feedbackList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        feedbackList = new();
+        // Load editor-specific feedback — using UID from session automatically
+        // EditorService handles UID internally
+        var blogs = await EditorService.GetBlogsAsync("pending");
+        foreach (var b in blogs)
+        {
+            var f = await EditorService.GetFeedbackAsync(b.Id);
+            feedbackList.AddRange(f);
+        }
+    }
+}

@@ -1,0 +1,412 @@
+﻿@page "/reader/library"
+@layout AuthorLayour
+@* @page "/reader/library"
+@layout AuthorLayour *@
+@using BSService.Services
+@using BlogApp1.Shared
+@using BlogApp1.Client.Services
+@inject LibraryService LibraryService
+@inject BlogService BSService
+@inject NavigationManager NavigationManager
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6 mb-10">
+
+    <!-- Header -->
+    <MudPaper Class="pa-4 mb-4 d-flex align-center" Elevation="1" Style=" background: linear-gradient( to right, #ffffff, #f0f9ff);">
+        <MudText Typo="Typo.h5" Class="mr-4" Style="font-family:'Lucida Handwriting'"> My Library</MudText>
+
+        <MudTextField @bind-Value="searchQuery" Placeholder="Search inside library..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="mx-3" Immediate="true" />
+
+        <MudSelect T="string" @bind-Value="selectedSort" Label="Sort" Dense="true" Class="mx-2" Style="min-width:150px">
+            <MudSelectItem Value="@("Latest")">Latest</MudSelectItem>
+            <MudSelectItem Value="@("Oldest")">Oldest</MudSelectItem>
+            <MudSelectItem Value="@("MostViewed")">Most Viewed</MudSelectItem>
+            <MudSelectItem Value="@("MostLiked")">Most Liked</MudSelectItem>
+        </MudSelect>
+
+        <MudSelect T="string" @bind-Value="selectedCategoryFilter" Label="Category" Dense="true" Class="mx-2" Style="min-width:140px">
+            <MudSelectItem Value="@("All")">All</MudSelectItem>
+            <MudSelectItem Value="@("Tech")">Tech</MudSelectItem>
+            <MudSelectItem Value="@("Lifestyle")">Lifestyle</MudSelectItem>
+            <MudSelectItem Value="@("Travel")">Travel</MudSelectItem>
+            <MudSelectItem Value="@("Education")">Education</MudSelectItem>
+            <MudSelectItem Value="@("Food")">Food</MudSelectItem>
+        </MudSelect>
+
+        <MudSpacer />
+
+        <MudToggleIconButton @bind-Toggled="isGridView" Icon="@Icons.Material.Filled.GridView" ToggledIcon="@Icons.Material.Filled.List" Color="Color.Primary" ToggledColor="@Color.Success" />
+
+    </MudPaper>
+
+    <!-- Tabs -->
+    <MudTabs Elevation="0" Rounded="false" Class="custom-tabs mb-4">
+        <MudTabPanel Text="Saved">
+            @SavedTab()
+        </MudTabPanel>
+
+        <MudTabPanel Text="Liked">
+            @LikedTab()
+        </MudTabPanel>
+
+        <MudTabPanel Text="History">
+            @HistoryTab()
+        </MudTabPanel>
+
+        <MudTabPanel Text="Collections">
+            @CollectionsTab()
+        </MudTabPanel>
+
+        <MudTabPanel Text="Analytics">
+            @* @AnalyticsTab() *@
+        </MudTabPanel>
+    </MudTabs>
+</MudContainer>
+
+
+@code {
+
+    private bool isGridView { get; set; } = true;
+    private string searchQuery { get; set; } = "";
+    private string selectedSort { get; set; } = "Latest";
+    private string selectedCategoryFilter { get; set; } = "All";
+
+    private List<BlogDto>? Blogs = new();
+    private List<int> LikedIds = new();
+    private List<int> HistoryIds = new();
+    private List<int> SavedIds = new();
+    private List<CollectionResponse> Collections = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Blogs = await BSService.GetAllBlogsAsync();
+        LikedIds = await BSService.GetLikedIdAsync();
+        SavedIds = await BSService.GetSavedIdAsync();
+        HistoryIds = await BSService.GetHistoryAsync();
+        Collections = await LibraryService.GetCollectionsAsync();
+
+
+    }
+    private IEnumerable<BlogDto> SavedBlogs => FilterAndSort(Blogs.Where(b => SavedIds.Contains(b.Id)));
+    private IEnumerable<BlogDto> LikedBlogs => FilterAndSort(Blogs.Where(b => LikedIds.Contains(b.Id)));
+    private IEnumerable<BlogDto> HistoryBlogs => FilterAndSort(Blogs.Where(b => HistoryIds.Contains(b.Id)));
+
+
+    private IEnumerable<BlogDto> FilterAndSort(IEnumerable<BlogDto> list)
+    {
+        var q = list;
+
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+            q = q.Where(b => b.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                             b.AuthorName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+
+        if (selectedCategoryFilter != "All")
+            q = q.Where(b => b.Domain == selectedCategoryFilter);
+
+        q = selectedSort switch
+        {
+            "Oldest" => q.OrderBy(b => b.CreatedAt),
+            "MostViewed" => q.OrderByDescending(b => b.ViewCount),
+            "MostLiked" => q.OrderByDescending(b => b.LikesCount),
+            _ => q.OrderByDescending(b => b.CreatedAt),
+        };
+
+        return q;
+    }
+    private void GoToBlog(string slug)
+    {
+        NavigationManager.NavigateTo($"/blog/{slug}");
+    }
+    private void ToggleSave(int blogId)
+    {
+        if (SavedIds.Contains(blogId)) SavedIds.Remove(blogId);
+        else SavedIds.Add(blogId);
+    }
+
+    private void ToggleLike(int blogId)
+    {
+        if (LikedIds.Contains(blogId)) LikedIds.Remove(blogId);
+        else LikedIds.Add(blogId);
+    }
+
+    private void RemoveFromHistory(int blogId)
+    {
+        HistoryIds.Remove(blogId);
+    }
+
+    private void ClearHistory()
+    {
+        HistoryIds.Clear();
+    }
+    private void NavigateToExplorer()
+    {
+        NavigationManager.NavigateTo("reader/search");
+    }
+    private void CreateNewCollection()
+    {
+        var newId = Collections.Any() ? (Collections.Count +1) : 1;
+        Collections.Add(new CollectionResponse { Id = Guid.NewGuid(), CollectionName = $"New Collection {newId}", Description = "Newly created collection" });
+    }
+
+    private void AddToCollection(int blogId, Guid collectionId)
+    {
+        var c = Collections.FirstOrDefault(x => x.Id == collectionId);
+        if (c != null && !c.BlogIds.Contains(blogId)) c.BlogIds.Append(blogId);
+    }
+
+    private void RemoveFromCollection(int blogId,Guid collectionId)
+    {
+        var c = Collections.FirstOrDefault(x => x.Id == collectionId);
+        var ids = c?.BlogIds.ToList();
+        ids.Remove(blogId);
+        c.BlogIds = ids.ToArray();
+    }
+    RenderFragment SavedTab() => @<div>
+@if (!SavedBlogs.Any())
+    {
+    <MudPaper Class="pa-6 d-flex flex-column align-center" Style="background-color:#edf2f0" Elevation="0">
+        <MudText Typo="Typo.h6">No saved blogs yet</MudText>
+        <MudText Typo="Typo.body2" Class="mb-3">Save articles while exploring to build your library.</MudText>
+        <MudButton Variant="Variant.Filled" @onclick="NavigateToExplorer">Explore blogs</MudButton> 
+    </MudPaper>
+    }
+    else
+    {
+@if (isGridView)
+    {
+    <MudGrid Class="mt-3">
+        @foreach (var b in SavedBlogs)
+                {
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Class="pa-2 mb-3" Elevation="4" Style="background-color:#e4f0ef;height:100%;">
+                <img src="@b.CoverImageUrl" alt="@b.Title" style="width:100%;height:140px;object-fit:cover;border-radius:4px" />
+                <MudText Typo="Typo.subtitle1" Class="mt-2 font-bold cursor-pointer" Style="color:#004d40" @onclick="@(() => GoToBlog(b.Slug))">@b.Title</MudText>
+                <MudText Typo="Typo.caption">@b.AuthorName • @b.CreatedAt?.ToString("MMM dd, yyyy")</MudText>
+                <MudText Typo="Typo.body2" Class="mt-1">@b.Content.Substring(3, 50)...</MudText>
+
+                <div class="d-flex align-center mt-2">
+                    <MudIconButton Icon="@Icons.Material.Filled.Bookmark" OnClick="@(() => ToggleSave(b.Id))" ToolTip="Remove from saved" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="Color.Secondary" OnClick="@(() => ToggleLike(b.Id))" ToolTip="Like" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Share" OnClick="@(() => {/* share stub */})" ToolTip="Share" />
+                    <MudSpacer />
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => GoToBlog(b.Slug))">Read</MudButton>
+                </div>
+            </MudPaper>
+        </MudItem>
+                }
+    </MudGrid>
+    }
+    else
+{
+        <MudGrid>
+            @foreach (var b in SavedBlogs)
+            {
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-2 mb-3" Style="height:100%;background-color:#e4f0ef;padding-bottom:0;" Elevation="4">
+                        <MudGrid>
+                            <MudItem md="3">
+                                <img src="@b.CoverImageUrl" alt="@b.Title" style="width:150px;height:90px;object-fit:cover;border-radius:4px;margin-right:12px" />
+                            </MudItem>
+                            <MudItem md="9">
+                                <MudContainer>
+                                    <MudText Typo="Typo.subtitle1" Class="font-bold cursor-pointer" @onclick="@(() => GoToBlog(b.Slug))">@b.Title</MudText>
+                                    <MudText Typo="Typo.caption">@b.AuthorName • @b.CreatedAt?.ToString("MMM dd")</MudText>
+                                    <MudText Typo="Typo.body2" Truncate="true">@b.Content.Substring(3, 50)...</MudText>
+                                </MudContainer>
+                            </MudItem>
+
+                        </MudGrid>
+                        <div class="d-flex align-center mt-2">
+                            <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="Color.Error" OnClick="@(() => ToggleLike(b.Id))" Class="like-checkbox" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Bookmark" OnClick="@(() => ToggleSave(b.Id))" Class="like-checkbox" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Share" OnClick="@(() => {/* share stub */})" ToolTip="Share" />
+
+                            <MudSpacer />
+                            <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => GoToBlog(b.Slug))">Read</MudButton>
+                        </div>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+}
+    }
+</div>;
+
+             RenderFragment LikedTab() => @<div>
+@if (!LikedBlogs.Any())
+{
+        <MudPaper Class="pa-6 d-flex flex-column align-center" Elevation="0">
+            <MudText Typo="Typo.h6">No liked blogs yet</MudText>
+            <MudText Typo="Typo.body2" Class="mb-3">Tap the heart on articles you enjoy — they'll show up here.</MudText>
+            <MudButton Variant="Variant.Filled" @onclick="NavigateToExplorer">Discover</MudButton> //onclick
+        </MudPaper>
+}
+else
+{
+        <MudGrid Class="mt-3">
+            @foreach (var b in LikedBlogs)
+            {
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-2 mb-3" Style="height:100%;background-color:#e4f0ef;padding-bottom:0;" Elevation="4">
+                        <MudGrid>
+                            <MudItem md="3">
+                                <img src="@b.CoverImageUrl" alt="@b.Title" style="width:150px;height:90px;object-fit:cover;border-radius:4px;margin-right:12px" />
+                            </MudItem>
+                            <MudItem md="9">
+                                <MudContainer>
+                                    <MudText Typo="Typo.subtitle1" Class="font-bold cursor-pointer" @onclick="@(() => GoToBlog(b.Slug))">@b.Title</MudText>
+                                    <MudText Typo="Typo.caption">@b.AuthorName • @b.CreatedAt?.ToString("MMM dd")</MudText>
+                                    <MudText Typo="Typo.body2" Truncate="true">@b.Content.Substring(3, 50)...</MudText>
+                                </MudContainer>
+                            </MudItem>
+
+                        </MudGrid>
+                        <div class="d-flex align-center mt-2">
+                            <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="Color.Error" OnClick="@(() => ToggleLike(b.Id))" Class="like-checkbox" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Bookmark" OnClick="@(() => ToggleSave(b.Id))" Class="like-checkbox" />
+                            <MudSpacer />
+                            <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => GoToBlog(b.Slug))">Read</MudButton>
+                        </div>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+}
+</div>;
+RenderFragment HistoryTab() => @<div>
+    <div class="d-flex align-center mb-2">
+        <MudText Typo="Typo.h6">Recently Read</MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Filled" Style="background:#00796b;color:aliceblue;" Color="Color.Error" OnClick="ClearHistory">Clear History</MudButton>
+    </div>
+
+@if (!HistoryBlogs.Any())
+{
+        <MudPaper Class="pa-6 d-flex flex-column align-center" Elevation="0">
+            <MudText Typo="Typo.h6">No history yet</MudText>
+            <MudText Typo="Typo.body2">Read articles and they'll appear here.</MudText>
+        </MudPaper>
+}
+else
+{
+        <MudGrid >
+            @foreach (var b in HistoryBlogs)
+            {
+        <MudItem xs="12" md="6">
+            <MudPaper Class="pa-2 mb-3" Style="height:100%;background-color:#e4f0ef;padding-bottom:0;" Elevation="4">
+                <MudGrid>
+                    <MudItem md="3">
+                        <img src="@b.CoverImageUrl" alt="@b.Title" style="width:150px;height:90px;object-fit:cover;border-radius:4px;margin-right:12px" />
+                    </MudItem>
+                    <MudItem md="9">
+                        <MudContainer>
+                            <MudText Typo="Typo.subtitle1" Class="font-bold cursor-pointer" @onclick="@(() => GoToBlog(b.Slug))">@b.Title</MudText>
+                            <MudText Typo="Typo.caption">@b.AuthorName • @b.CreatedAt?.ToString("MMM dd")</MudText>
+                            <MudText Typo="Typo.body2" Truncate="true">@b.Content.Substring(3, 50)...</MudText>
+                        </MudContainer>
+                    </MudItem>
+
+                        </MudGrid>
+                        <div class="d-flex align-center mt-2">
+                            <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="Color.Error" OnClick="@(() => ToggleLike(b.Id))" Class="like-checkbox" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Bookmark" OnClick="@(() => ToggleSave(b.Id))" Class="like-checkbox" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="@(() => RemoveFromHistory(b.Id))" ToolTip="Remove from history" />
+                            <MudSpacer />
+                            <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => GoToBlog(b.Slug))">Read</MudButton>
+                        </div>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+}
+</div>;
+RenderFragment CollectionsTab() => @<div>
+    <div class="d-flex align-center mb-2">
+        <MudText Typo="Typo.h6">Collections</MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Filled" Style="background-color:#00796b;color:aliceblue;" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateNewCollection">Create Collection</MudButton>
+    </div>
+
+@if (!Collections.Any())
+{
+        <MudPaper Class="pa-6 d-flex flex-column align-center" Elevation="0">
+            <MudText Typo="Typo.h6">No collections yet</MudText>
+            <MudText Typo="Typo.body2">Group saved articles into themed collections.</MudText>
+        </MudPaper>
+}
+else
+{
+        <MudGrid>
+            @foreach (var c in Collections)
+            {
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-3 mb-3" Elevation="3" Style="height:100%;background-color:#e0f2f1;">
+                        <div class="d-flex align-center">
+                            <MudStack>
+                                <MudText Typo="Typo.subtitle1" Class="font-bold" Style="color:#004d40;">@c.CollectionName</MudText>
+                                <MudText Typo="Typo.caption" Style="color:#004d40;">@c.Description</MudText>
+                            </MudStack>
+
+                            <MudSpacer />
+
+                            <MudText Typo="Typo.caption" Style="color:#004d40;">@c.BlogIds.Count() items</MudText>
+                        </div>
+
+                        <div class="d-flex mt-3" style="gap:8px;flex-wrap:wrap">
+                            @foreach (var bid in c.BlogIds.Take(4))
+                            {
+                                var blog = Blogs.FirstOrDefault(x => x.Id == bid);
+                                if (blog != null)
+                                {
+                                    <div style="width:120px">
+                                        <img src="@blog.CoverImageUrl" alt="@blog.Title" style="width:100%;height:70px;object-fit:cover;border-radius:4px" />
+                                        <MudText Typo="Typo.caption" Truncate="true">@blog.Title</MudText>
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                        <div class="d-flex align-center mt-3">
+                            <MudSelect T="int" Label="Add blog" Dense="true" Style="min-width:200px" OnSelectedValueChanged="(val) => AddToCollection(val, c.Id)">
+                                <MudSelectItem Value="0" Disabled="true">Select blog to add</MudSelectItem>
+                                @foreach (var b in LikedBlogs.Where(b => !c.BlogIds.Contains(b.Id)))
+                                {
+                                    <MudSelectItem Value="@b.Id">@b.Title</MudSelectItem>
+                                }
+                            </MudSelect>
+                            <MudSpacer />
+                            <MudButton Variant="Variant.Outlined" Style="color:#00796b" OnClick="@(() => {/* open collection */})">Open</MudButton>
+                        </div>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+}
+</div> ;
+
+
+
+}
+
+<style>
+
+    .like-checkbox .mud-icon-root .mud-icon-button {
+        padding: 0 !important;
+    }
+
+    .font-bold {
+        font-weight: 700;
+    }
+    .custom-tabs .mud-tab-active{
+        color: #ff5722 !important;
+    }
+
+    .custom-tabs .mud-tabs-tabbar{
+        background-color: #edf2f5;
+    }
+    .custom-tabs .mud-tab-slider {
+        background-color: #ff5722 !important; /* Choose any color you want */
+    }
+    body{
+        background-color: #edf2f5;
+    }
+</style>

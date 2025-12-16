@@ -1,0 +1,246 @@
+﻿@page "/admin/comments"
+@layout AdminLayout
+@using BlogApp1.Shared
+@using BlogApp1.Client.Services
+@inject AdminService AdminService
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.Large" Style="margin:10px;">
+    <MudText Typo="Typo.h2" Align="Align.Center" style="font-weight:600;color:#272145;margin-bottom:40px;">
+        COMMENT CONTROL PANEL
+    </MudText>
+
+    <MudContainer Style="max-width:90%">
+        <MudPaper Style="border-radius:16px;background-color:#F5F3FF;padding-left:10px;padding-right:10px;" Class="mb-5">
+            <MudGrid>
+                <MudItem xs="12" md="6" Style="padding-top:10px;padding-bottom:10px;">
+                    <MudTextField @bind-Value="searchText"
+                                  Placeholder="Search by content or author..."
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Medium"
+                                  Immediate="true"
+                                  Class="mx-3" />
+                </MudItem>
+
+                <MudItem xs="12" md="3" Style="padding-top:10px;padding-bottom:10px;">
+                    <MudSelect T="string" @bind-Value="selectedDateFilter">
+                        @foreach (var option in dateOptions)
+                        {
+                            <MudSelectItem Value="@option">@option</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" md="3" Style="padding-top:10px;padding-bottom:10px;">
+                    <MudSelect T="string" @bind-Value="selectedCommentType">
+                        <MudSelectItem Value="@("All")">All Comments</MudSelectItem>
+                        <MudSelectItem Value="@("Parent")">Parent Comments</MudSelectItem>
+                        <MudSelectItem Value="@("Child")">Child Comments</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudContainer>
+
+    <MudContainer Style="height: 500px; max-width:90%">
+        <MudPaper Class="pa-4" Elevation="2" Style="border-radius:16px;">
+            <!-- HEADER ROW -->
+            <MudPaper Class="pa-3 mb-3" Elevation="1"
+                      Style="display:flex; align-items:center; justify-content:space-between; border-radius:12px; gap:16px; background-color:#F5F3FF;">
+                <div style="width:20%; text-align:start;">
+                    <MudText Align="Align.Start" Style="color:#272145;font-weight:500">AUTHOR</MudText>
+                </div>
+
+                <div style="width:25%; text-align:start;">
+                    <MudText Align="Align.Start" Style="color:#272145;font-weight:500">CONTENT</MudText>
+                </div>
+
+                <div style="width:10%; text-align:center;">
+                    <MudText Align="Align.Center" Style="color:#272145;font-weight:500">TYPE</MudText>
+                </div>
+
+                <div style="width:10%; text-align:center;">
+                    <MudText Align="Align.Center" Style="color:#272145;font-weight:500">LIKES</MudText>
+                </div>
+
+                <div style="width:15%; text-align:center;">
+                    <MudText Align="Align.Center" Style="color:#272145;font-weight:500">CREATED AT</MudText>
+                </div>
+
+                <div style="width:20%; text-align:center;">
+                    <MudText Align="Align.Center" Style="color:#272145;font-weight:500">ACTIONS</MudText>
+                </div>
+            </MudPaper>
+
+            <!-- COMMENTS LIST -->
+            <MudContainer Style="padding:0; overflow-y:auto; height:500px;">
+                @if (Comments is null)
+                {
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="mt-6 mx-auto" />
+                }
+                else if (!filteredComments.Any())
+                {
+                    <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-6" Color="Color.Secondary">
+                        No comments found.
+                    </MudText>
+                }
+                else
+                {
+                    @foreach (var comment in filteredComments)
+                    {
+                        <MudPaper Class="pa-3 mb-3" Elevation="1"
+                                  Style="display:flex; align-items:center; justify-content:space-between; border-radius:12px; gap:16px; background-color:#F9FAFB;" @onclick="()=> GoToBlog(comment.BlogId)">
+
+                            <!-- AUTHOR -->
+                            <div style="width:20%; display:flex; align-items:center; gap:8px;">
+                                <MudAvatar Size="Size.Small" Style="background-color:#3f51b5;color:white;">
+                                    @comment.AuthorName?.FirstOrDefault()
+                                </MudAvatar>
+                                <MudText Style="font-weight:600;">@comment.AuthorName</MudText>
+                            </div>
+
+                            <!-- CONTENT -->
+                            <div style="width:25%; text-align:start;">
+                                <MudText>@comment.Content</MudText>
+                            </div>
+
+                            <!-- TYPE -->
+                            <div style="width:10%; text-align:center;">
+                                <MudChip T="bool" Color="@(comment.IsParent? Color.Info: Color.Secondary)" Variant="Variant.Outlined">
+                                    @(comment.IsParent ? "Parent" : "Child")
+                                </MudChip>
+                            </div>
+
+                            <!-- LIKES -->
+                            <div style="width:10%; text-align:center;">
+                                <MudText Align="Align.Center">@comment.LikesCount</MudText>
+                            </div>
+
+                            <!-- CREATED AT -->
+                            <div style="width:15%; text-align:center;">
+                                <MudText Align="Align.Center">@comment.CreatedAt?.ToString("dd MMM yyyy")</MudText>
+                            </div>
+
+                            <!-- ACTIONS -->
+                            <div style="width:20%; text-align:center;">
+                                <MudButton Variant="Variant.Outlined" Color="Color.Dark" Size="Size.Small" Style="border-radius:16px;"
+                                           OnClick="@(() => GoToComment(comment.CommentUid))">
+                                    Edit
+                                </MudButton>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small" Class="ml-1"
+                                           Style="border-radius:16px;"
+                                           OnClick="@(() => DeleteComment(comment.CommentUid))">Delete
+                                </MudButton>
+                            </div>
+                        </MudPaper>
+                    }
+                }
+            </MudContainer>
+        </MudPaper>
+
+        
+    </MudContainer>
+</MudContainer>
+
+@code {
+    private List<CommentDto> Comments = new();
+    private string searchText = "";
+    private string selectedDateFilter = "All Time";
+    private string selectedCommentType = "All";
+
+    private List<string> dateOptions = new()
+    {
+        "All Time", "Last 3 Days", "Last 7 Days", "Last 15 Days", "Last 30 Days", "Last 3 Months", "Last 6 Months"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        Comments = await AdminService.GetAllCommentsAsync();
+    }
+
+    private IEnumerable<CommentDto> filteredComments
+    {
+        get
+        {
+            if (Comments == null || Comments.Count == 0)
+                return Enumerable.Empty<CommentDto>();
+
+            IEnumerable<CommentDto> query = Comments;
+
+            // 🔍 Search Filter
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                string search = searchText.ToLower();
+                query = query.Where(c =>
+                    (c.Content?.ToLower().Contains(search) ?? false) ||
+                    (c.AuthorName?.ToLower().Contains(search) ?? false));
+            }
+
+            // 🕓 Date Filter
+            DateTime now = DateTime.UtcNow;
+            DateTime? fromDate = selectedDateFilter switch
+            {
+                "Last 3 Days" => now.AddDays(-3),
+                "Last 7 Days" => now.AddDays(-7),
+                "Last 15 Days" => now.AddDays(-15),
+                "Last 30 Days" => now.AddDays(-30),
+                "Last 3 Months" => now.AddMonths(-3),
+                "Last 6 Months" => now.AddMonths(-6),
+                _ => null
+            };
+
+            if (fromDate.HasValue)
+                query = query.Where(c => c.CreatedAt >= fromDate.Value);
+
+            // 🧩 Comment Type Filter
+            query = selectedCommentType switch
+            {
+                "Parent" => query.Where(c => c.IsParent),
+                "Child" => query.Where(c => !c.IsParent),
+                _ => query
+            };
+
+            // Sort by newest
+            return query.OrderByDescending(c => c.CreatedAt).ToList();
+        }
+    }
+
+    private async Task DeleteComment(Guid commentUid)
+    {
+        bool isDeleted = await AdminService.DeleteCommentAsync(commentUid);
+        if (isDeleted)
+        {
+            Comments.RemoveAll(c => c.CommentUid == commentUid);
+            Snackbar.Add("Comment deleted successfully!", Severity.Success);
+            Comments = await AdminService.GetAllCommentsAsync();
+
+        }
+        else
+        {
+            Snackbar.Add("Failed to delete comment.", Severity.Error);
+        }
+    }
+
+    private void GoToBlog(int blogId)
+    {
+        Nav.NavigateTo($"/admin/blogs/{blogId}");
+    }
+    private void GoToComment(Guid id)
+    {
+        NavigationManager.NavigateTo($"/admin/comment/edit/{id}");
+    }
+}
+
+<style>
+    body {
+        background-color: #FBFAFF;
+    }
+
+    .mud-avatar {
+        font-weight: 600;
+    }
+</style>

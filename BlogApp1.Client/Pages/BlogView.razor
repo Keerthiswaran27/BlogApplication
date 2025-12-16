@@ -1,0 +1,368 @@
+﻿@page "/admin/blogs/{BlogId:int}"
+@layout AdminLayout
+@inject HttpClient Http
+@using BlogApp1.Shared
+@using BSService.Services
+@inject BlogService BlogService
+@using BlogApp1.Client.Services
+@inject AdminService AdminService
+@inject NavigationManager NavigationManager
+@inject CommentService CommentService
+@inject IJSRuntime JS
+
+<MudDrawer Anchor="Anchor.Right" @bind-Open="_drawerOpen" OnClose="()=>_drawerOpen=false" Elevation="8" Variant="DrawerVariant.Temporary" Width="400px">
+    <MudDrawerHeader>
+        <MudText Typo="Typo.h6">Comments</MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="()=>_drawerOpen=false" />
+    </MudDrawerHeader>
+<MudContainer style="height:1500px;overflow-y:auto;">
+            <MudDivider Class="my-3" />
+       
+
+        <!-- Hardcoded Parent Comments -->
+        
+        @foreach (var comment in _parentComments.OrderByDescending(c => c.CreatedAt))
+        {
+            @if(comment.IsParent)
+            {
+                <MudContainer Class="mb-3" Style="padding:0;">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                        <MudAvatar Style="height:35px; width:35px; font-size:1rem;background-color:orange;color:white;" >@comment.AuthorName.First()</MudAvatar>
+                        <MudStack Spacing="0">
+                            @if(Guid.TryParse(blog.AuthorUid, out var authorGuid) && comment.CommentUserId == authorGuid)
+                            {
+                                <MudText Style="padding:0;" Typo="Typo.caption">@comment.AuthorName - <span style="color:grey">Author</span></MudText>
+
+                            }
+                            else
+                            {
+                                <MudText Style="padding:0;" Typo="Typo.caption">@comment.AuthorName</MudText>
+                                
+                            }
+                            <MudText Style="padding:0;color:grey;" Typo="Typo.caption" >@comment.CreatedAt?.Date.ToString("MMM dd")</MudText>
+                        </MudStack>
+                        
+                        <MudSpacer/>
+                        <MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" Color="Color.Primary" />
+                    </MudStack>
+                    <MudText Typo="Typo.body2" Class="mt-2 mr-2">@comment.Content</MudText>
+
+                    <MudStack Row="true" dir="ltr">
+                        <MudCheckBox T="bool" Size="Size.Small" Style="color:grey;" @bind-value="LikeCheck1" Color="Color.Secondary" CheckedIcon="@Icons.Material.Filled.ThumbUp" UncheckedIcon="@Icons.Material.Outlined.ThumbUp" ></MudCheckBox>
+                        <MudButton Variant="Variant.Text" Size="Size.Small" style="color:grey" OnClick="() => ToggleReplies(comment.CommentUid.ToString())">Show Replies</MudButton>
+                        <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Dark" OnClick="()=>GoToComment(comment.CommentUid)">edit</MudButton>   
+                    </MudStack>
+
+                    <!-- Reply Box -->
+
+                    <MudContainer Class="flex justify-end" Style="padding:0;border-left:2px solid black;margin-left:10px;">
+                        
+
+                        <!-- Replies -->
+                        <MudCollapse Class="ml-4" Expanded="@(_expandedReplies.Contains(comment.CommentUid.ToString()))">
+                            <MudContainer Class="mt-3" Elevation="0" Style="padding:0;">
+                                @foreach (var reply in _parentComments.Where(c => c.ParentCommentUid == comment.CommentUid))
+                                {
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                                        <MudAvatar Style="height:35px; width:35px; font-size:1rem;background-color:darkcyan;color:white;">@reply.AuthorName.First()</MudAvatar>
+                                        <MudStack Spacing="0">
+                                            @if(Guid.TryParse(blog.AuthorUid, out var authorGuid) && reply.CommentUserId == authorGuid)
+                                            {
+                                                <MudText Style="padding:0;" Typo="Typo.caption">@reply.AuthorName - <span style="color:grey">Author</span></MudText>
+
+                                            }
+                                            else
+                                            {
+                                                <MudText Style="padding:0;" Typo="Typo.caption">@reply.AuthorName</MudText>
+                                
+                                            }
+                                            <MudText Style="padding:0;color:grey;" Typo="Typo.caption">@reply.CreatedAt?.Date.ToString("MMM dd")</MudText>
+                                        </MudStack>
+
+                                        <MudSpacer />
+                                        <MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" Color="Color.Primary" />
+                                    </MudStack>
+                                    <MudText Align="Align.Left" Typo="Typo.body2">@reply.Content</MudText>
+                                    <MudStack Row="true" dir="ltr">
+                                        <MudCheckBox T="bool" Size="Size.Small" Style="color:grey;" @bind-value="LikeCheck1" Color="Color.Secondary" CheckedIcon="@Icons.Material.Filled.ThumbUp" UncheckedIcon="@Icons.Material.Outlined.ThumbUp"></MudCheckBox>
+                                        <MudButton Variant="Variant.Text" Size="Size.Small" style="color:grey" OnClick="() => ToggleReplies(reply.CommentUid.ToString())">Show Replies</MudButton>
+                                         <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Dark" OnClick="()=>GoToComment(reply.CommentUid)">edit</MudButton>   
+                                    </MudStack>
+                                    <MudContainer Class="flex justify-end" Style="padding:0;border-left:2px solid black;margin-left:10px;">
+                                        
+
+                                        <!-- Replies -->
+                                        <MudCollapse Class="ml-4" Expanded="@(_expandedReplies.Contains(reply.CommentUid.ToString()))">
+                                            <MudContainer Class="mt-3 mr-2" Elevation="0" Style="padding:0;">
+                                                @foreach (var reply1 in _parentComments.Where(c => c.ParentCommentUid == reply.CommentUid))
+                                                {
+                                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                                                        <MudAvatar Style="height:35px; width:35px; font-size:1rem;background-color:darkcyan;">@reply1.AuthorName.First()</MudAvatar>
+                                                        <MudStack Spacing="0">
+                                                        @if(Guid.TryParse(blog.AuthorUid, out var authorGuid) && reply1.CommentUserId == authorGuid)
+                                                        {
+                                                            <MudText Style="padding:0;" Typo="Typo.caption">@reply1.AuthorName - <span style="color:grey">Author</span></MudText>
+
+                                                        }
+                                                        else
+                                                        {
+                                                            <MudText Style="padding:0;" Typo="Typo.caption">@reply1.AuthorName</MudText>
+                                
+                                                        }                                                            
+                                                        <MudText Style="padding:0;color:grey;" Typo="Typo.caption">@reply1.CreatedAt?.Date.ToString("MMM dd")</MudText>
+                                                        </MudStack>
+                                                        <MudSpacer />
+                                                        <MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" Color="Color.Primary" />
+                                                    </MudStack>
+                                                    <MudText Align="Align.Left" Class="mr-2"  Typo="Typo.body2">@reply1.Content</MudText>
+                                                    <MudStack Row="true" dir="ltr">
+                                                        <MudCheckBox T="bool" Size="Size.Small" Style="color:grey;" @bind-value="LikeCheck1" Color="Color.Secondary" CheckedIcon="@Icons.Material.Filled.ThumbUp" UncheckedIcon="@Icons.Material.Outlined.ThumbUp"></MudCheckBox>
+                                                        <MudButton Variant="Variant.Text" Size="Size.Small" style="color:grey" OnClick="() => ToggleReplies(reply1.CommentUid.ToString())">Show Replies</MudButton>
+                                                        <MudButton Variant="Variant.Text" Size="Size.Small" style="color:grey" OnClick="() => ToggleReplyBox(reply1.CommentUid.ToString())">Reply</MudButton>
+                                                        <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Dark" OnClick="()=>GoToComment(reply1.CommentUid)">edit</MudButton>   
+                                                        
+                                                    </MudStack>
+                                                    <MudDivider Class="my-2" />
+                                                }
+                                            </MudContainer>
+                                        </MudCollapse>
+                                    </MudContainer>
+                                    <MudDivider Class="my-2" />
+                                }
+                            </MudContainer>
+                        </MudCollapse>
+                    </MudContainer>
+                </MudContainer>
+                <MudDivider Class="my-3" />
+            }
+            
+        }
+        
+    </MudContainer>
+</MudDrawer>
+
+
+
+<MudContainer Class="blog-container mt-5 mb-7">
+    @if (blog != null)
+    {
+        <MudImage Src="@blog.CoverImageUrl" Alt="@blog.Title" Class="blog-image mb-4" />
+        <MudText Typo="Typo.h3" Class="mb-4" Style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;font-weight: 700;">@blog.Title</MudText>
+
+        <MudDivider />
+        <MudStack Row="true" Class="ma-2">
+            <MudText Typo="Typo.body2">@blog.ReadingTime Minutes</MudText>
+            <MudSpacer/>
+            <MudText Typo="Typo.body2" Style="color:#272145">@blog.Domain.ToUpper()</MudText>
+            <MudSpacer/>
+            <MudText Typo="Typo.body2">@blog.CreatedAt?.Date.ToString("dd-MMM-yyyy")</MudText>
+        </MudStack>
+        <MudDivider Class="mb-3"/>
+        <MudText Typo="Typo.h6">@((MarkupString)blog.Content)</MudText>
+        <MudChipSet T="string" Class="mb-5 mt-2">
+            @foreach (var tag in blog.Tags)
+            {
+                <MudChip Color="Color.Primary" Size="Size.Large" Variant="Variant.Outlined">@tag</MudChip>
+            }
+        </MudChipSet>
+        <MudPaper Class="blog-info">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-1 mb-1">
+                <MudIcon Icon="@Icons.Material.Filled.ThumbUpAlt" Size="Size.Small" Class="ml-3"/>
+                <MudText Typo="Typo.body2">@blog.LikesCount</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.RemoveRedEye" Size="Size.Small" Class="ml-3" />
+                <MudText Typo="Typo.body2">@blog.ViewCount</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Comment" Size="Size.Small" Class="ml-3" @onclick="()=>_drawerOpen=true" />
+                <MudSpacer/>
+                <MudIcon Icon="@Icons.Material.Rounded.MoreVert"/>
+            </MudStack> 
+        </MudPaper>
+        
+        <MudGrid>
+            <MudItem md="2" Style="display:flex;justify-content:center;">
+                <MudAvatar style="height:70px;width:70px;">
+                    <MudImage Src="@blog.CoverImageUrl"></MudImage>
+                </MudAvatar>
+            </MudItem>
+            <MudItem md="8">
+                <MudText Typo="Typo.h5" @onclick="GoToAuthor">Written By @blog.AuthorName</MudText>
+                <MudText Typo="Typo.subtitle2">@(AuthorFollower.Count) Followers - @(AuthorFollowing.Count) Following</MudText>
+                <MudText Typo="Typo.body2">@blog?.MetaDescription</MudText>
+            </MudItem>
+            <MudItem md="2">
+                <MudStack AlignItems="AlignItems.Center">
+                    <MudButton Variant="Variant.Outlined"
+                           Color="@GetStatusColor()"
+                           Style="border-radius:16px;">
+                    @blog.Status
+                </MudButton>
+
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+        <MudStack Row="true" dir="rtl">
+            <MudButton style="background-color:#3f51b5;color:white;border-radius:22px;" Size="Size.Small" Variant="Variant.Outlined" OnClick="@(() => EditBlog(blog.Id))">Edit Blog</MudButton>
+            <MudButton style="border-radius:22px;" Color="Color.Dark" Size="Size.Small" Variant="Variant.Outlined" OnClick="Back">Back</MudButton>
+        </MudStack>
+    }
+    else
+    {
+        <MudText>Loading...</MudText>
+    }
+</MudContainer>
+
+
+@code {
+    [Parameter] public int BlogId { get; set; }
+    private BlogDto? blog;
+    private string Author = "Author";
+    private List<string> AuthorFollowing = new();
+    private List<string> AuthorFollower = new();
+    private bool Followed = false;
+    protected override async Task OnInitializedAsync()
+    {
+        blog = await AdminService.GetBlogById(BlogId);
+
+        AuthorFollowing = await BlogService.GetAuthorFollowingAsync(blog.AuthorUid);
+        AuthorFollower = await BlogService.GetFollowersAsync(blog.AuthorUid);
+
+        _parentComments = await CommentService.GetCommentsByBlogIdAsync(blog.Id);
+
+    }
+
+
+    //comment section @code
+    private bool _drawerOpen = false;
+    private string _newComment = string.Empty;
+    private string _newCommentChild1 = string.Empty;
+    private string _replyBoxOpenFor = null;
+    private HashSet<string> _expandedReplies = new();
+    private HashSet<string> _expandedReplyBox = new();
+    private List<CommentDto> _parentComments = new();
+    private bool LikeCheck1 = false;
+
+
+    private void ToggleReplyBox(string commentId)
+    {
+        if (_expandedReplyBox.Contains(commentId))
+            _expandedReplyBox.Remove(commentId);
+        else            
+            _expandedReplyBox.Add(commentId);
+    }
+
+    private void ToggleReplies(string commentId)
+    {
+        if (_expandedReplies.Contains(commentId))
+            _expandedReplies.Remove(commentId);
+        else
+            _expandedReplies.Add(commentId);
+    }
+    // Hardcoded parent + replies
+    private async Task PostComment()
+    {
+        if(!string.IsNullOrWhiteSpace(_newComment))
+        {
+            var success = await CommentService.AddComment(
+             blogId: blog.Id,            
+             content: _newComment,              
+             parentCommentUid: null                  
+         );
+            _newComment = string.Empty;
+            _parentComments.Clear();
+            _parentComments = await CommentService.GetCommentsByBlogIdAsync(blog.Id);
+        }
+
+    }
+    private async Task PostChildComment(Guid parentUid)
+    {
+        if(!string.IsNullOrWhiteSpace(_newCommentChild1))
+        {
+            var success = await CommentService.AddComment(
+             blogId: blog.Id,            
+             content: _newCommentChild1,              
+             parentCommentUid: parentUid            
+         );
+            _newCommentChild1 = string.Empty;
+            _parentComments.Clear();
+            _parentComments = await CommentService.GetCommentsByBlogIdAsync(blog.Id);
+        }
+
+    }
+    private void CancelComment()
+    {
+        _newComment = string.Empty;
+    }
+    private void CancelChildComment()
+    {
+        _newCommentChild1 = string.Empty;
+    }
+    private async Task SharePost()
+    {
+        if (blog == null) return;
+
+        var title = blog.Title;
+        var text = blog?.Content.Substring(0,50);
+        var url = $"https://myblog.com/blog/{blog.Slug}";
+
+        await JS.InvokeVoidAsync("navigator.share", new {
+            title,
+            text,
+            url
+        });
+    }
+    private void GoToAuthor()
+    {
+         NavigationManager.NavigateTo($"/admin/userview/{blog?.AuthorUid}");  
+    }
+    private Color GetStatusColor()
+    {
+        return blog.Status?.ToLower() switch
+        {
+            "approved" => Color.Success,
+            "pending" => Color.Info,
+            "rejected" => Color.Error,
+            _ => Color.Default
+        };
+    }
+    private void EditBlog(int Id)
+    {
+        NavigationManager.NavigateTo($"/admin/blog/edit/{Id}");
+    }
+    private void Back()
+    {
+        NavigationManager.NavigateTo($"/admin/blogs");
+    }
+    private void GoToComment(Guid id)
+    {
+        NavigationManager.NavigateTo($"/admin/comment/edit/{id}");
+    }
+}
+
+
+<style>
+    .blog-image{
+        width:100%;
+        height:400px;
+    }
+   
+    
+    .blog-container{
+        max-width:750px;
+    }
+    .blog-info{
+        border-radius:16px;
+        padding:10px;
+        margin-top:0;
+        margin-bottom:40px;
+        background-color: #FBFAFF;
+        border: 1px solid black;
+    }
+    .icon-css{
+        margin-left:15px;
+        margin-top:5px;
+    }
+    body {
+        background-color: #FBFAFF;
+    }
+    
+</style>

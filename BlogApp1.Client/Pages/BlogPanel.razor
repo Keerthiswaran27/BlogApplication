@@ -1,0 +1,298 @@
+﻿@page "/admin/blogs"
+@layout AdminLayout
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@using BlogApp1.Shared
+
+
+<MudContainer MaxWidth="MaxWidth.Large" Style="margin:10px;" >
+    <MudText Typo="Typo.h2" Align="Align.Center" style="font-weight:600;color:#272145;margin-bottom:20px;">BLOG CONTROL PANEL</MudText>
+    <MudContainer Style="max-width:85%">
+        <MudPaper Style="border-radius:16px;background-color:#F5F3FF;padding-left:10px;padding-right:10px;" Class="mb-5">
+            <MudGrid>
+                <MudItem xs="12" md="5" Style="padding-top:10px;padding-bottom:10px;">
+                    <MudTextField @bind-Value="searchQuery"
+                                  Placeholder="Search users..."
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Medium"
+                                  Immediate="true"
+                                  Class="mx-3" />
+                </MudItem>
+                <MudItem xs="12" md="7" Style="padding-top:10px;padding-bottom:10px;">
+                    <MudGrid>
+                        <MudItem xs="3" md="4">
+                            <MudSelect T="string" @bind-Value="selectedCategory">
+                                <MudSelectItem Value="@("All")">All</MudSelectItem>
+                                @foreach (var category in Categories)
+                                {
+                                    <MudSelectItem Value="@category">@category</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+
+                        <MudItem xs="3" md="4">
+                            <MudSelect T="string" @bind-Value="selectedStatus">
+                                <MudSelectItem Value="@("All")">All Status</MudSelectItem>
+                                <MudSelectItem Value="@("Approved")">Approved</MudSelectItem>
+                                <MudSelectItem Value="@("Pending")">Pending</MudSelectItem>
+                                <MudSelectItem Value="@("Rejected")">Rejected</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+
+                        <MudItem xs="3" md="4">
+                            <MudSelect T="string" @bind-Value="sortBy">
+                                <MudSelectItem Value="@("Newest")">Newest</MudSelectItem>
+                                <MudSelectItem Value="@("Oldest")">Oldest</MudSelectItem>
+                                <MudSelectItem Value="@("Views")">Most Viewed</MudSelectItem>
+                                <MudSelectItem Value="@("Likes")">Most Liked</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        @* <MudItem  xs="3" md="3" Style="display:flex;justify-content:center;"    >
+                        <MudButton style="border-radius:16px;background-color:#b6c4fc;color:#313e73;border:2px solid #6272b3 !important;"
+                                   Size="Size.Small"
+                                   Variant="Variant.Filled" >
+                            <MudIcon Icon="@Icons.Material.Filled.Add" />
+                        </MudButton>
+
+                    </MudItem> *@
+                    </MudGrid>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudContainer>
+    <MudContainer  Style="height: 500px;overflow-y: auto;max-width:85%">
+        @if (filteredBlogs.Count() < 1)
+        {
+            @for (int i = 0; i < 4; i++)
+            {
+                <MudPaper Class="mt-4 mb-4" Style="border-radius:16px;background-color:white;padding:10px;">
+                    <MudGrid>
+                        <!-- Left section -->
+                        <MudItem xs="8">
+                            <!-- Profile row -->
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudSkeleton Variant="Circular" Width="40px" Height="40px" />
+                                <MudStack>
+                                    <MudSkeleton Width="120px" Height="10px" />
+                                    <MudSkeleton Width="80px" Height="10px" />
+                                </MudStack>
+                            </MudStack>
+
+                            <!-- Title lines -->
+                            <MudSkeleton Width="90%" Height="14px" Class="mt-3" />
+                            <MudSkeleton Width="85%" Height="14px" Class="mt-1" />
+                            <MudSkeleton Width="70%" Height="14px" Class="mt-1" />
+
+                            <!-- Button-like bar -->
+                            <MudSkeleton Width="50%" Height="30px" Class="mt-3" Style="border-radius:8px;" />
+                        </MudItem>
+
+                        <!-- Right image placeholder -->
+                        <MudItem xs="4" Class="d-flex justify-center align-center">
+                            <MudSkeleton Width="100%" Height="120px" Variant="Rectangular" />
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            }
+        }
+        else if (Blogs.Count() < 1)
+        {
+            @for (int i = 0; i < 4; i++)
+            {
+                <MudPaper Class="mt-4 mb-4" Style="border-radius:16px;background-color:white;padding:10px;">
+                    <MudGrid>
+                        <!-- Left section -->
+                        <MudItem xs="8">
+                            <!-- Profile row -->
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudSkeleton Variant="Circular" Width="40px" Height="40px" />
+                                <MudStack>
+                                    <MudSkeleton Width="120px" Height="10px" />
+                                    <MudSkeleton Width="80px" Height="10px" />
+                                </MudStack>
+                            </MudStack>
+
+                            <!-- Title lines -->
+                            <MudSkeleton Width="90%" Height="14px" Class="mt-3" />
+                            <MudSkeleton Width="85%" Height="14px" Class="mt-1" />
+                            <MudSkeleton Width="70%" Height="14px" Class="mt-1" />
+
+                            <!-- Button-like bar -->
+                            <MudSkeleton Width="50%" Height="30px" Class="mt-3" Style="border-radius:8px;" />
+                        </MudItem>
+
+                        <!-- Right image placeholder -->
+                        <MudItem xs="4" Class="d-flex justify-center align-center">
+                            <MudSkeleton Width="100%" Height="120px" Variant="Rectangular" />
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            }
+        }
+        else
+        {
+            @foreach (var blog in filteredBlogs)
+            {
+                <MudPaper Class="stats-cards mt-4 mb-4" Style="border-radius:16px;background-color:#F5F3FF;padding:10px;border:1px solid black">
+                    <MudGrid>
+                        @* content *@
+                        <MudItem sm="9" md="8">
+                            <MudContainer Style="padding:10px;">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                                    <MudAvatar Style="height:35px; width:35px; font-size:1rem;background-color:#3f51b5;color:white;">@blog.AuthorName.First()</MudAvatar>
+                                    <MudStack Spacing="0">
+                                        <MudText Style="padding:0;" Typo="Typo.caption">@blog.AuthorName</MudText>
+                                        <MudText Style="padding:0;color:grey;" Typo="Typo.caption">@blog.CreatedAt?.Date.ToString("MMM dd")</MudText>
+                                    </MudStack>
+                                    <MudSpacer />
+                                    <MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" Color="Color.Primary" />
+                                </MudStack>
+                                <MudText Typo="Typo.h5" Style="color:#212121;cursor:pointer;font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;font-weight:800;" @onclick="@(() => NavigateToBlog(blog.Id))" Class="mt-3">@blog.Title</MudText>
+                                <MudText Typo="Typo.body1" Truncate="true" style="color:#757575">
+                                    @((blog.Content?.Length > 150) ? blog.Content.Substring(3, 100) + "..." : blog.Content)
+                                </MudText>
+                            </MudContainer>
+                            <MudContainer Style="display:flex;justify-content:start;padding-left:10px;padding-bottom:10px;width:100%">
+                                <MudStack Row="true">
+                                    <MudStack Row="true" Spacing="0">
+                                        <MudIcon Icon="@Icons.Material.Filled.Favorite" Class="like-button-css ml-2" />
+                                        <MudText Typo="Typo.caption" Style="margin-top:2px;" Class="ml-1">@blog.LikesCount</MudText>
+                                        <MudIcon Icon="@Icons.Material.Filled.Visibility" Class="like-button-css ml-4" />
+                                        <MudText Typo="Typo.caption" Style="margin-top:2px;" Class="ml-1">@blog.ViewCount</MudText>
+                                    </MudStack>
+                                </MudStack>
+                                <MudSpacer />
+                                <MudStack Row="true">
+                                    <MudStack Row="true">
+                                        <MudButton Size="Size.Small" Style="border-radius:16px;" Color="Color.Primary" Variant="Variant.Outlined">@blog.Status</MudButton>
+                                        <MudButton Size="Size.Small" Style="border-radius:16px;" Variant="Variant.Outlined" @onclick="() => GoToBlogEdit(blog.Id)">Edit</MudButton>
+                                        <MudButton Size="Size.Small" Style="border-radius:16px;" Color="Color.Error" Variant="Variant.Outlined">delete</MudButton>
+                                    </MudStack>
+                                </MudStack>
+                            </MudContainer>
+                        </MudItem>
+                        @* image *@
+                        <MudItem sm="3" md="4">
+                            <MudContainer style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;padding:0;cursor:pointer;" @onclick="@(() => NavigateToBlog(blog.Id))">
+                                <MudImage Src="@blog.CoverImageUrl" Alt="@blog.Title" Style="width:100%;height:100%;padding:10px;border-radius:22px;" />
+                            </MudContainer>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+            }
+        }
+
+    </MudContainer>
+
+
+</MudContainer>
+
+
+@code {
+    private List<BlogDto> Blogs { get; set; } = new();
+
+    private string searchQuery = "";
+    private string selectedCategory = "All";
+    private string selectedStatus = "All";
+    private string sortBy = "Newest";
+
+    private List<string> Categories = new() { "Tech", "Lifestyle", "Travel", "Food", "Education" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        Blogs = await Http.GetFromJsonAsync<List<BlogDto>>("api/adminblogs");
+    }
+
+    private IEnumerable<BlogDto> filteredBlogs
+    {
+        get
+        {
+            if (Blogs == null || Blogs.Count == 0)
+                return Enumerable.Empty<BlogDto>();
+
+            var query = Blogs.AsEnumerable();
+
+            // 🔍 Search filter
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                query = query.Where(u =>
+                    (u.AuthorName?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (u.Title?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (u.Tags?.ToString().Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            // 🧩 Category filter
+            if (!string.IsNullOrWhiteSpace(selectedCategory) && selectedCategory != "All")
+            {
+                query = query.Where(u =>
+                    u.Domain != null &&
+                    u.Domain.Contains(selectedCategory, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // 🏷️ Status filter
+            if (!string.IsNullOrWhiteSpace(selectedStatus) && selectedStatus != "All")
+            {
+                query = query.Where(u =>
+                    u.Status != null &&
+                    u.Status.Equals(selectedStatus, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // ⏰ Sorting
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                query = sortBy switch
+                {
+                    "Newest" => query.OrderByDescending(b => b.CreatedAt),
+                    "Oldest" => query.OrderBy(b => b.CreatedAt),
+                    "Views" => query.OrderByDescending(b => b.ViewCount),
+                    "Likes" => query.OrderByDescending(b => b.LikesCount),
+                    _ => query
+                };
+            }
+
+            return query.ToList();
+        }
+    }
+
+    
+
+    private void NavigateToBlog(int Id)
+    {
+        NavigationManager.NavigateTo($"/admin/blogs/{Id}");
+    }
+    private void GoToBlogEdit(int Id)
+    {
+        NavigationManager.NavigateTo($"/admin/blog/edit/{Id}");
+    }
+
+    private void EditBlog(int id)
+    {
+        NavigationManager.NavigateTo($"/admin/blogs/edit/{id}");
+    }
+
+    private void ChangeStatus(int id, string currentStatus)
+    {
+        // Toggle between Draft/Published/Archived → call API
+    }
+
+    private void DeleteBlog(int id)
+    {
+        // Confirm + call API to delete
+    }
+}
+<style>
+    body {
+        background-color: #FBFAFF;
+    }
+
+    .stats-cards {
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+    }
+
+    .like-button-css .mud-icon-button {
+        padding: 0;
+    }
+</style>

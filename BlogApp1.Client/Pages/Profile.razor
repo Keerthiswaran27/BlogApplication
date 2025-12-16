@@ -1,0 +1,243 @@
+﻿@page "/reader/profile"
+@layout AuthorLayour
+
+@using MudBlazor
+@using BSService.Services
+@inject BlogService BSService
+@inject CommentService CommentService
+@using BlogApp1.Shared
+@using BlogApp1.Client.Services
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+
+    <!-- Banner -->
+    <MudPaper Class="mb-4" Style="height:200px;background-image:url('https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=1350&q=80');background-size:cover;background-position:center;">
+    </MudPaper>
+
+    <MudGrid>
+        <!-- Left Sidebar -->
+        <MudItem xs="12" md="4">
+            <MudGrid>
+                <MudItem md="12">
+                    <MudPaper Class="pa-4" Elevation="2" Style="background-color:#e4f0ef">
+                        <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                            <MudAvatar Size="Size.Large" style="background-color:cadetblue;color:white">K</MudAvatar>
+                            <MudText Typo="Typo.h5" Class="font-bold">Keerthiswaran K R</MudText>
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Software Engineer | Blogger | Tech Enthusiast</MudText>
+                            
+                            <MudStack Row="true" Spacing="1">
+                                <MudIcon Icon="@Icons.Material.Filled.Email" Color="Color.Dark" Size="Size.Small"/>
+                                <MudText Typo="Typo.caption">keerthiswarankrk@gmail.com</MudText>
+                            </MudStack>
+                        </MudStack>
+
+                        <MudDivider Class="my-4" />
+
+                        <!-- Social Links -->
+                        <MudStack Row="true" Spacing="2" Justify="Justify.Center" AlignItems="AlignItems.Center">
+                            <MudIconButton Icon="@Icons.Custom.Brands.Twitter" Color="Color.Info" />
+                            <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Default" />
+                            <MudIconButton Icon="@Icons.Custom.Brands.LinkedIn" Color="Color.Primary" />
+                            <MudIconButton Icon="@Icons.Custom.Brands.Instagram" Color="Color.Error" />
+
+                            <MudIconButton Icon="@Icons.Material.Filled.Web" Color="Color.Secondary" />
+                        </MudStack>
+
+                        <MudDivider Class="my-4" />
+                    </MudPaper>
+                </MudItem>
+                <MudItem md="12">
+                    <MudPaper Style="border-radius:10px;padding:20px;background:#e4f0ef">
+                        <MudText Typo="Typo.h6" Class="mb-3">Following</MudText>
+
+                        @if (FollowingNames != null && FollowingNames.Any())
+                        {
+                            <MudList T="string" Dense="true">
+                                @foreach (var name in FollowingNames)
+                                {
+                                    <MudListItem>
+                                        <MudStack Row="true">
+                                            <MudAvatar Size="Size.Small" style="background-color:cadetblue;color:white" Class="me-2">@name.First()</MudAvatar>
+                                            <MudText Typo="Typo.body1">@name</MudText>
+                                        </MudStack>
+                                        <MudDivider/>
+                                    </MudListItem>
+                                }
+                            </MudList>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Not following anyone yet.</MudText>
+                        }
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+
+        <!-- Main Content -->
+        <MudItem xs="12" md="8">
+            @if(Blogs.Count==0)
+            {
+                <MudPaper Style="height:500px;display:flex;justify-content:center;align-items:center;background-color:#e4f0ef;">
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+
+                </MudPaper>
+            }
+            else
+            {
+                <MudPaper Class="pa-4" Elevation="2" Style="background-color:#e4f0ef;">
+                    @* <MudText Typo="Typo.h6" Class="font-bold mb-3">About</MudText>
+                <MudText Typo="Typo.body2">
+                    Passionate software engineer with 5+ years of experience building web and mobile applications. Loves blogging about technology trends, coding tips, and career growth. Enthusiastic about learning new frameworks and sharing knowledge with the community.
+                </MudText> *@
+
+                    <MudDivider Class="my-4" />
+
+                    <MudText Typo="Typo.h6" Class="font-bold mb-3">Recent Activity</MudText>
+
+                    <!-- Sample posts -->
+                    <MudStack Spacing="3">
+                        @foreach (var b in Blogs.Take(3))
+                        {
+                            @if (LikedIds.Contains(b.Id))
+                            {
+                                <MudPaper Class="pa-2 mb-3" Style="height:100%;background-color:white;padding-bottom:0;border-radius:16px;" Elevation="4">
+                                    <MudGrid>
+                                        <MudItem md="3">
+                                            <img src="@b.CoverImageUrl" alt="@b.Title" style="width:150px;height:90px;object-fit:cover;border-radius:4px;margin-right:12px" />
+                                        </MudItem>
+                                        <MudItem md="9">
+                                            <MudContainer>
+                                                <MudText Typo="Typo.subtitle1" Class="font-bold cursor-pointer" @onclick="@(() => GoToBlog(b.Slug))">@b.Title</MudText>
+                                                <MudText Typo="Typo.caption">@b.AuthorName • @b.CreatedAt?.ToString("MMM dd")</MudText>
+                                                <MudText Typo="Typo.body2" Truncate="true">@b.Content.Substring(3, 50)...</MudText>
+                                            </MudContainer>
+                                        </MudItem>
+
+                                    </MudGrid>
+
+                                </MudPaper>
+                            }
+
+                        }
+                    </MudStack>
+                    <MudText Typo="Typo.h6" Class="font-bold mb-3">Recent commets</MudText>
+                    <MudStack Spacing="3">
+                        @if (Comments == null)
+                        {
+                            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                        }
+                        else if (Comments.Count == 0)
+                        {
+                            <MudText>No blogs found.</MudText>
+                        }
+                        else
+                        {
+                            @foreach (var comment in Comments)
+                            {
+                                <MudPaper Class="pa-2 mb-3" Style="height:100%;background-color:white;padding-bottom:0;border-radius:16px;" Elevation="4">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                                        <MudAvatar Style="height:35px; width:35px; font-size:1rem;background-color:orange;color:white;">@comment.AuthorName.First()</MudAvatar>
+                                        <MudStack Spacing="0">
+                                            <MudText Style="padding:0;" Typo="Typo.caption">@comment.AuthorName</MudText>
+                                            <MudText Style="padding:0;color:grey;" Typo="Typo.caption">@comment.CreatedAt?.Date.ToString("MMM dd")</MudText>
+                                        </MudStack>
+                                        <MudSpacer />
+                                        <MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" Color="Color.Primary" />
+                                    </MudStack>
+                                    <MudText Typo="Typo.h6" Style="color:#212121;cursor:pointer;font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;font-weight:500;" Class="mt-3">@comment.Content</MudText>
+                                    <MudText Typo="Typo.subtitle2">
+                                        @comment.BlogTitle
+                                    </MudText>
+                                    <MudStack Row="true" Class="mt-2">
+                                        <MudStack Row="true">
+                                            <MudText Typo="Typo.body2" Style="color:darkgrey">
+                                                @foreach (var AuthorName in CommentAuthors)
+                                                {
+                                                    @if (AuthorName.Commentuid == comment.CommentUid)
+                                                    {
+                                                        @($"Replying to {AuthorName.Name}")
+                                                    }
+                                                }
+                                            </MudText>
+                                        </MudStack>
+                                        <MudSpacer />
+
+                                    </MudStack>
+                                </MudPaper>
+                                <MudDivider />
+                            }
+                        }
+                    </MudStack>
+                </MudPaper>
+            }
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+
+@code{
+    private List<BlogDto>? Blogs = new();
+    private List<int> LikedIds = new();
+    private List<int> SavedIds = new();
+    private List<CommentDto> Comments = new();
+    private List<AuthorComment> CommentAuthors = new();
+    private List<string> FollowingNames = new()
+    {
+        "Keerthiswaran K R",
+        "Ramya",
+        "Leela T",
+        "Anand Mani"
+    };
+    public class AuthorComment
+    {
+        public string Name { get; set; }
+        public Guid Commentuid { get; set; }
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        Blogs = await BSService.GetAllBlogsAsync();
+        LikedIds = await BSService.GetLikedIdAsync();
+        SavedIds = await BSService.GetSavedIdAsync();
+        Blogs = await BSService.GetAllBlogsAsync();
+        Comments = await CommentService.GetRecentCommentsAsync();
+
+
+        foreach (var comment in Comments)
+        {
+            if (comment.ParentCommentUid.HasValue)
+            {
+                var AuthorName = await CommentService.GetAuthorName(comment.ParentCommentUid);
+                CommentAuthors.Add(new AuthorComment { Name = AuthorName, Commentuid = comment.CommentUid });
+            }
+            else
+            {
+                var AuthorName = await CommentService.GetAuthorUsingId(comment.BlogId);
+                CommentAuthors.Add(new AuthorComment { Name = AuthorName, Commentuid = comment.CommentUid });
+            }
+        }
+        foreach (var c in CommentAuthors)
+        {
+            Console.WriteLine($"{c.Name}");
+        }
+        foreach (var comment in Comments)
+        {
+            comment.BlogTitle = await CommentService.GetTitleAsync(comment.BlogId);
+        }
+    }
+
+    private void GoToBlog(string slug)
+    {
+        NavigationManager.NavigateTo($"/blogs/{slug}");
+    }
+}
+<style>
+    .font-bold {
+        font-weight: 700;
+    }
+
+    body {
+        background-color: #edf2f5;
+    }
+</style>

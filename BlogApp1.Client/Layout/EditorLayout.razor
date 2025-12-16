@@ -1,0 +1,160 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
+<MudLayout>
+    <!-- AppBar -->
+    <MudAppBar Fixed="true" Class="app-bar-css">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="() => DrawerToggle()" />
+
+        <MudText Typo="Typo.h4" Style="font-family:'Baskerville Old Face'; font-weight:500">
+            MiddleMan
+        </MudText>
+
+        <MudSpacer />
+
+        <MudText Typo="Typo.h6">@role</MudText>
+
+        <MudIconButton Icon="@Icons.Material.Filled.Notifications"
+                       Class="icon-color"
+                       Href="/editor/notifications">
+        </MudIconButton>
+
+        <MudMenu Icon="@Icons.Material.Filled.AccountCircle"
+                 Class="icon-color"
+                 AnchorOrigin="Origin.BottomRight"
+                 TransformOrigin="Origin.TopRight">
+            <MudMenuItem Href="/editor/profile">Profile</MudMenuItem>
+            <MudMenuItem Href="/editor/logout">Logout</MudMenuItem>
+        </MudMenu>
+    </MudAppBar>
+
+    <!-- Drawer -->
+    <MudDrawer @bind-Open="_drawerOpen"
+               Variant="DrawerVariant.Mini"
+               Elevation="1"
+               ClipMode="DrawerClipMode.Always"
+               MiniVariantWidth="56px"
+               Width="180px"
+               Class="drawer-css">
+
+        <MudNavMenu Class="mt-5">
+
+            <MudNavLink Href="/editor"
+                        Icon="@Icons.Material.Filled.Dashboard"
+                        Match="NavLinkMatch.All"
+                        Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Dashboard</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/editor/reviewlist"
+                        Icon="@Icons.Material.Filled.RateReview"
+                        Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Review Blogs</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/editor/revisionhistory"
+                        Icon="@Icons.Material.Filled.History"
+                        Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Revision History</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/editor/approved"
+                        Icon="@Icons.Material.Filled.CheckCircle"
+                        Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Approved</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/editor/rejected"
+                        Icon="@Icons.Material.Filled.Cancel"
+                        Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Rejected</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/editor/profile"
+                        Icon="@Icons.Material.Filled.AccountCircle"
+                        Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Profile</span>
+                }
+            </MudNavLink>
+
+            <MudNavLink Href="/editor/logout"
+                        Icon="@Icons.Material.Filled.Logout"
+                        Class="custom-icon">
+                @if (_drawerOpen)
+                {
+                    <span>Logout</span>
+                }
+            </MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <!-- Main Content -->
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+    private string role = "Editor";
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}
+
+<style>
+    .app-bar-css {
+        background: linear-gradient(135deg, #C7D2FE, #E9D5FF);
+        color: black;
+    }
+
+    .mud-drawer {
+        color: black;
+    }
+
+    .mud-icon-root {
+        color: black;
+    }
+
+    .custom-icon .mud-icon-root {
+        color: #0a2340 !important;
+    }
+
+    .mud-nav-link.active {
+        color: #24609c !important;
+    }
+
+    .drawer-css {
+        background-color: #EDE9FF;
+    }
+
+    .icon-color {
+        color: #0a2340 !important;
+    }
+</style>

@@ -1,0 +1,405 @@
+﻿@page "/author/write/story"
+
+@layout ReaderLayout
+
+@* @using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Author")] *@
+
+<PageTitle>Author</PageTitle>
+
+@inject IJSRuntime JS
+@using BSService.Services
+@inject BlogService BlogService
+@using BlogApp1.Shared
+@inject ISnackbar Snackbar
+@inject NavigationManager NavManager
+@inject BlogApp1.Client.Services.ImageApiService ImageApiService
+@using System.Text.RegularExpressions;
+@if(state==0)
+{
+    <MudContainer style="max-width:750px;">
+        <MudPaper Style="margin:20px;padding:20px;">
+            @if (!string.IsNullOrWhiteSpace(Blog.Title))
+            {
+                <MudText Typo="Typo.body2">Title</MudText>
+            }
+            <MudTextField Typo="Typo.h6" Placeholder="  Title" AutoGrow Variant="Variant.Text" @bind-Value="Blog.Title" />
+        </MudPaper>
+        <MudPaper Class="p-2 rounded border" Outlined="true" Style="min-height:200px;margin:20px;">
+            <MudContainer style="background: linear-gradient( to left, #E9D5FF, #E9D5FF );padding:10px;">
+                <MudText Style="color:black">Write Your Story in the Editor </MudText>
+            </MudContainer>
+            <div id="@EditorId" style="height:300px;"></div>
+        </MudPaper>
+        <MudContainer Style="display:flex;justify-content:center;">
+            <MudStack Row="true" dir="rtl" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2" Class="navigation-container mt-3">
+                <MudButton Variant="Variant.Filled" style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue;border:solid 1px #0a2340;border-radius:16px;" OnClick="ReviewContent">Review</MudButton>
+                <MudButton Variant="Variant.Filled" style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue;border:solid 1px #0a2340;border-radius:16px;" OnClick="SetContent">SEO Panel</MudButton>
+                <MudButton Variant="Variant.Filled" style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue;border:solid 1px #0a2340;border-radius:16px;" OnClick="PreviousContent">Editor</MudButton>
+            </MudStack>
+        </MudContainer>
+    </MudContainer>
+}
+else if(state==1)
+{
+    <MudContainer style="max-width:750px;margin-top:20px;">
+        <MudGrid Gutter="true">
+            <MudItem xs="12" sm="6" md="6">
+                <MudContainer class="image-upload-container">
+                    <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                                   Accept=".png,.jpg,.jpeg"
+                                   MaximumFileCount="1"
+                                   @ref="_fileUpload"
+                                   OnFilesChanged="OnInputFileChanged"
+                                   InputClass="file-upload-input"
+                                   Hidden="false">
+                        <ActivatorContent>
+                            <MudPaper Class="@_dragClass" Style="width:100%; height:  250px;" Outlined>
+                                <MudText Align="Align.Center">
+                                    Drag and drop image here<br />or click to select<br /><br />
+                                </MudText>
+                                @if (file is not null)
+                                {
+                                    <MudChip T="string"
+                                             Color="Color.Dark"
+                                             Text="@file.Name"
+                                             Style="margin-bottom:8px;" />
+                                }
+                            </MudPaper>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                    @if (file is not null)
+                    {
+                        <MudStack Row="true" dir="rtl" Class="mt-3">
+                            <MudButton Variant="Variant.Filled" style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue;border:solid 1px #0a2340;border-radius:16px;"
+                                       OnClick="ClearAsync">
+                                Clear
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue;border:solid 1px #0a2340;border-radius:16px;"
+                                       OnClick="Upload">
+                                Upload
+                            </MudButton>
+                        </MudStack>
+                    }
+                    @if (!string.IsNullOrEmpty(UploadedUrl))
+                    {
+                        <div class="mt-3">
+                            <MudImage Src="@UploadedUrl" Alt="Uploaded Image" Width="200" Height="200" />
+                        </div>
+                    }
+                    
+                </MudContainer>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="6" Style="height:100%">
+                <MudContainer class="seo-container">
+                    <MudText Typo="Typo.h5" Class="tb-1 mb-4" Align="Align.Center" Style="color:#24609c">For SEO</MudText>
+                    <MudTextField T="string" Class="mb-4" Label="Slug" Placeholder="Slug for SEO" Variant="Variant.Outlined" AutoGrow @bind-Text="Blog.Slug" />
+                    <MudTextField T="string" Class="mb-4" Label="Meta Description" Placeholder="Summary of ur Blog" Variant="Variant.Outlined" @bind-Value="Blog.MetaDescription" Lines="3" />
+                    <MudAutocomplete T="string"
+                                     @bind-Value="Blog.Domain"
+                                     Label="Blog Domain"
+                                     Variant="Variant.Outlined"
+                                     PlaceHolder="Category of the Blog"
+                                     SearchFunc="EnterCategory"
+                                     Clearable="true"
+                                     ResetValueOnEmptyText="true"
+                                     Dense="true"
+                                     class="mb-4"/>
+                    <MudAutocomplete T="string"
+                                     @bind-Value="Tag"
+                                     Label="Blog Tags"
+                                     Variant="Variant.Outlined"
+                                     PlaceHolder="@pctag"
+                                     Adornment="Adornment.End"
+                                     AdornmentIcon="@Icons.Material.Sharp.Add"
+                                     OnAdornmentClick="AddTags"
+                                     SearchFunc="EnterTag"
+                                     ResetValueOnEmptyText="true"
+                                     Dense="true"
+                                     class="mb-2"/>
+                    <MudChipSet T="string" AllClosable OnClose="Closed">
+                        @if(Blog.Tags.Count>0)
+                        {
+                            @foreach (var value in Blog.Tags)
+                            {
+                                <MudChip Text="@value" Style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue"></MudChip>
+                            }
+                        }
+                    </MudChipSet>
+                    <MudButton Variant="Variant.Filled" style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue;border:solid 1px #0a2340;border-radius:16px;" OnClick="PublishBlogAsync">Publish</MudButton>
+                    <MudButton Variant="Variant.Filled" style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue;border:solid 1px #0a2340;border-radius:16px;" OnClick="DraftBlogAsync">Draft</MudButton>
+                </MudContainer>
+              
+                  
+                
+            </MudItem>
+        </MudGrid>
+        <MudContainer Style="display:flex;justify-content:center;">
+            <MudStack Row="true" dir="rtl" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2" Class="navigation-container mt-3">
+                <MudButton Variant="Variant.Filled" style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue;border:solid 1px #0a2340;border-radius:16px;" OnClick="ReviewContent">Review</MudButton>
+                <MudButton Variant="Variant.Filled" style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue;border:solid 1px #0a2340;border-radius:16px;" OnClick="SetContent">SEO Panel</MudButton>
+                <MudButton Variant="Variant.Filled" style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue;border:solid 1px #0a2340;border-radius:16px;" OnClick="PreviousContent">Editor</MudButton>
+            </MudStack>
+        </MudContainer>
+    </MudContainer>
+}
+else if (state == 2)
+{
+    <MudContainer style="max-width:750px;margin-top:20px;">
+        <MudImage Src="@UploadedUrl" Alt="blog image" Class="mb-4" Style="width:100%"/>
+        <MudText Typo="Typo.h3">@Blog.Title</MudText>
+        <MudText Typo="Typo.h6" Style="color:#361d32;" Class="text-secondary">By Sai Durga Periyandavar</MudText>
+        <MudDivider Class="my-2" />
+        <MudText Typo="Typo.h6">@((MarkupString)EditorContent)</MudText>
+        <MudContainer Style="display:flex;justify-content:center;">
+            <MudStack Row="true" dir="rtl" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2" Class="navigation-container mt-3">
+                <MudButton Variant="Variant.Filled" style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue;border:solid 1px #0a2340;border-radius:16px;" OnClick="ReviewContent">Review</MudButton>
+                <MudButton Variant="Variant.Filled" style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue;border:solid 1px #0a2340;border-radius:16px;" OnClick="SetContent">SEO Panel</MudButton>
+                <MudButton Variant="Variant.Filled" style="background:linear-gradient(to right,#356696,#a9c3de);color:aliceblue;border:solid 1px #0a2340;border-radius:16px;" OnClick="PreviousContent">Editor</MudButton>
+            </MudStack>
+        </MudContainer>
+
+    </MudContainer>
+}
+else if (state ==3)
+{
+   
+}
+else
+{
+    
+}
+
+
+
+@code {
+    private string EditorId = "main-editor"; // fixed id instead of Guid
+    private string EditorContent = "";
+    private string Tag { get; set; } = string.Empty;
+    private int count = 4;
+    private string pctag => $"You can Add {count} Tags";
+
+    private NewBlog Blog = new();
+    private int state { get; set; }
+
+
+    private List<string> _allDomain = new()
+    {
+        "Artifical Intelligence","Machine Learning","Travel","General","LifeStyle","Food","Health"
+    };
+    List<string> _allTags = new List<string>
+    {
+        "design","ux","reading","blazor","performance","dotnet","mongodb","database","nosql","travel","roadtrip","coast","lifestyle","habits","productivity","css",
+        "frontend","webdev","food","recipe","cooking","iot","arduino","electronics","product","onboarding", "career","wellbeing","engineering",
+        "photography","city","night","ml","data-science","statistics",
+        "personal-finance","budgeting","money","remote-work","team","communication","gardening","seasonal","plants","security","devops",
+        "best-practices","books",
+        "refactor","code-quality","fitness","running","outdoors","writing"
+    };
+    public void Closed(MudChip<string> chip)
+    {
+        Blog.Tags.Remove(chip.Text);
+        count++;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("quillFunctions.create", EditorId);
+        }
+    }
+    private void back()
+    {
+        state = 0;
+    }
+
+    private async Task SetContent()
+    {
+        EditorContent = await JS.InvokeAsync<string>("quillFunctions.getContent", EditorId);
+        Blog.Slug = GenerateSlug(Blog.Title);
+        Console.WriteLine(EditorContent);
+        state = 1;
+    }
+    private async Task PreviewContent()
+    {
+        EditorContent = await JS.InvokeAsync<string>("quillFunctions.getContent", EditorId);
+        state = 2;
+    }
+    private async Task ReviewContent()
+    {
+
+        state = 3;
+    }
+    private async Task PublishBlogAsync()
+    {
+        Blog.Content = EditorContent;
+        Blog.Image = UploadedUrl;
+        Blog.Status = "pending";
+
+        bool status = await BlogService.AddBlogAsync(Blog);
+
+        if (status)
+        {
+            Snackbar.Add("Blog submitted successfully! Waiting for review.", Severity.Success);
+            NavManager.NavigateTo("/author/dashboard");
+        }
+        else
+        {
+            Snackbar.Add("Failed to submit blog. Please check console logs.", Severity.Error);
+        }
+    }
+
+    private async Task DraftBlogAsync()
+    {
+        
+    }
+    private async Task PreviousContent()
+    {
+        state = 0;
+
+        await InvokeAsync(StateHasChanged);   // trigger render
+        await Task.Delay(100);                // ⏳ wait for DOM (increase if still fails)
+
+        await JS.InvokeVoidAsync("quillFunctions.create", EditorId);
+
+        if (!string.IsNullOrWhiteSpace(EditorContent))
+        {
+            await JS.InvokeVoidAsync("quillFunctions.setContent", EditorId, EditorContent);
+        }
+    }
+    //entering the category
+    private Task<IEnumerable<string>> EnterCategory(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(Enumerable.Empty<string>()); // don't show dropdown when empty
+
+        var result = _allDomain
+            .Where(x => x.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        return Task.FromResult(result.AsEnumerable());
+    }
+    private Task<IEnumerable<string>> EnterTag(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(Enumerable.Empty<string>()); // don't show dropdown when empty
+
+        var result = _allTags
+            .Where(x => x.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        return Task.FromResult(result.AsEnumerable());
+    }
+
+    //adding tags to mudchip
+
+    private void AddTags()
+    {
+        if (!string.IsNullOrWhiteSpace(Tag) && !Blog.Tags.Contains(Tag) && count>0)
+        {
+            Blog.Tags.Add(Tag);
+            count--;
+        }
+        Tag = string.Empty;
+        
+    }
+
+    //image uploading c# code below...
+    private string UploadedUrl;
+    private IBrowserFile file;
+    private MudFileUpload<IReadOnlyList<IBrowserFile>> _fileUpload;
+    private string _dragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        file = e.GetMultipleFiles(1)
+                .FirstOrDefault(f => f.ContentType == "image/png" || f.ContentType == "image/jpeg" || f.ContentType == "image/jpg");
+        ClearDragClass();
+    }
+
+    private async Task Upload()
+    {
+        if (file is not null)
+            UploadedUrl = await ImageApiService.UploadImageAsync(file);
+    }
+
+    private async Task ClearAsync()
+    {
+        await _fileUpload.ClearAsync();
+        file = null;
+        UploadedUrl = null;
+        ClearDragClass();
+        StateHasChanged();
+    }
+
+    private void SetDragClass() => _dragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full drag-highlight";
+    private void ClearDragClass() => _dragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+
+    //automation of slug creation
+
+    public static string GenerateSlug(string title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+            return string.Empty;
+
+        // Convert to lowercase
+        string slug = title.ToLowerInvariant();
+
+        // Remove invalid characters
+        slug = Regex.Replace(slug, @"[^a-z0-9\s-]", "");
+
+        // Replace multiple spaces with a single hyphen
+        slug = Regex.Replace(slug, @"\s+", "-").Trim('-');
+
+        // Limit length (SEO-friendly slugs should be short)
+        if (slug.Length > 80)
+            slug = slug.Substring(0, 80).Trim('-');
+
+        return slug;
+    }
+}
+
+<style>
+    .file-upload-input {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 10;
+        opacity: 0;
+    }
+
+  /*   body {
+        background: linear-gradient(to left,#a9c3de,#dde6f0,#e4e8ed,white);
+    } */
+    .drag-highlight {
+        border-color: #1976d2 !important;
+        background: #e3f2fd;
+    }
+    .seo-container{
+        height: 500px;
+        background-color: #F5FAFF;
+        border: solid 1px #0a2340;
+        border-radius: 16px;
+        padding:20px;
+    }
+    .image-upload-container{
+        min-height: 500px;
+        background-color: #F5FAFF;
+        border: solid 1px #0a2340;
+        border-radius: 16px;
+    }
+    .mud-input{
+        background-color:white;
+    }
+    .navigation-container{
+        border-radius:16px;
+        margin-top:10px;
+        width:100%;
+        padding:7px;
+    }
+
+    body {
+        background-color: #FBFAFF;
+    }
+</style>

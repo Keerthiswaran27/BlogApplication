@@ -1,0 +1,40 @@
+﻿@page "/author"
+@layout ReaderLayout
+@using MudBlazor
+@inject NavigationManager NavManager
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-10">
+    <MudPaper Class="p-6 text-center rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-semibold mb-6">Welcome, Author 👋</h2>
+        <p class="mb-8 text-gray-600">
+            Choose how you'd like to create your next blog — manually or with AI assistance.
+        </p>
+
+        <MudGrid Justify="Justify.Center" Spacing="3">
+            <MudItem xs="12" sm="6">
+                <MudCard Class="cursor-pointer hover:shadow-xl transition-all" @onclick="GoToManualWrite">
+                    <MudCardContent>
+                        <MudIcon Icon="@Icons.Material.Filled.EditNote" Size="Size.Large" Color="Color.Primary" />
+                        <h4 class="mt-3 font-medium">Write Manually</h4>
+                        <p class="text-sm text-gray-600">Start writing your blog the classic way.</p>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudCard Class="cursor-pointer hover:shadow-xl transition-all" @onclick="GoToAIGenerate">
+                    <MudCardContent>
+                        <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Size="Size.Large" Color="Color.Secondary" />
+                        <h4 class="mt-3 font-medium">Generate with AI</h4>
+                        <p class="text-sm text-gray-600">Give a topic and let AI draft your blog.</p>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private void GoToManualWrite() => NavManager.NavigateTo("/author/write/story");
+    private void GoToAIGenerate() => NavManager.NavigateTo("/author/write/ai");
+}

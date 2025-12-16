@@ -1,0 +1,355 @@
+﻿@page "/author/write/ai"
+@inject GeminiService GeminiService
+@using MudBlazor
+@using BlogApp1.Shared
+@layout ReaderLayout
+@inject ISnackbar Snackbar
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-10">
+    @if (!_showGenerated)
+    {
+        <!-- ===================== INPUT SECTION ===================== -->
+        <MudPaper Class="p-8 rounded-2xl shadow-xl" Style="background: linear-gradient(135deg,#C7D2FE,#E9D5FF);padding:15px;">
+            <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">🤖 Generate Your AI Blog</h2>
+
+            <MudForm @ref="_form" Class="grid gap-5 md:grid-cols-2">
+                <MudTextField Label="Title" @bind-Value="_request.Title" FullWidth="true" Required="true" />
+
+                <MudTextField Label="Audience" @bind-Value="_request.Audience"
+                              FullWidth="true" Placeholder="e.g., Developers, Students, Professionals" />
+
+                <MudSelect T="string" Label="Tone" @bind-Value="_request.Tone" FullWidth="true">
+                    <MudSelectItem Value="@("Professional")">Professional</MudSelectItem>
+                    <MudSelectItem Value="@("Casual")">Casual</MudSelectItem>
+                    <MudSelectItem Value="@("Educational")">Educational</MudSelectItem>
+                    <MudSelectItem Value="@("Inspirational")">Inspirational</MudSelectItem>
+                </MudSelect>
+
+                <MudSelect T="string" Label="Length" @bind-Value="_selectedLength" FullWidth="true">
+                    <MudSelectItem Value="@("Short")">Short</MudSelectItem>
+                    <MudSelectItem Value="@("Medium")">Medium</MudSelectItem>
+                    <MudSelectItem Value="@("Long")">Long</MudSelectItem>
+                </MudSelect>
+
+                <MudTextField Label="Custom Prompt (Optional)"
+                              @bind-Value="_request.CustomPrompt"
+                              Lines="3"
+                              Class="md:col-span-2"
+                              FullWidth="true"
+                              Placeholder="e.g., Include real-world examples, storytelling tone, or add comparisons with 2024 trends." />
+
+                <div class="md:col-span-2 flex justify-between items-center mt-2">
+                    <MudSwitch T="bool" @bind-Checked="_request.IncludeImage" Color="Color.Primary">
+                        Include Cover Image
+                    </MudSwitch>
+                </div>
+
+                <div class="md:col-span-2 flex justify-end mt-6">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GenerateBlog" Disabled="_isLoading">
+                        @(_isLoading ? "Generating..." : "Generate Blog")
+                    </MudButton>
+                </div>
+            </MudForm>
+        </MudPaper>
+
+        @if (_isLoading)
+        {
+            <div class="mt-10 flex flex-col items-center">
+                <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+                <p class="mt-3 text-gray-600">Generating your AI-powered blog... please wait ⏳</p>
+            </div>
+        }
+    }
+    else
+    {
+        @if(state)
+        {
+            <!-- ===================== INPUT SECTION ===================== -->
+            <MudPaper Class="p-8 rounded-2xl shadow-xl" Style="background: linear-gradient(135deg,#C7D2FE,#E9D5FF);padding:15px;">
+                <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">🤖 Generate Your AI Blog</h2>
+
+                <MudForm @ref="_form" Class="grid gap-5 md:grid-cols-2">
+                    <MudTextField Label="Title" @bind-Value="_request.Title" FullWidth="true" Required="true" />
+
+                    <MudTextField Label="Audience" @bind-Value="_request.Audience"
+                                  FullWidth="true" Placeholder="e.g., Developers, Students, Professionals" />
+
+                    <MudSelect T="string" Label="Tone" @bind-Value="_request.Tone" FullWidth="true">
+                        <MudSelectItem Value="@("Professional")">Professional</MudSelectItem>
+                        <MudSelectItem Value="@("Casual")">Casual</MudSelectItem>
+                        <MudSelectItem Value="@("Educational")">Educational</MudSelectItem>
+                        <MudSelectItem Value="@("Inspirational")">Inspirational</MudSelectItem>
+                    </MudSelect>
+
+                    <MudSelect T="string" Label="Length" @bind-Value="_selectedLength" FullWidth="true">
+                        <MudSelectItem Value="@("Short")">Short</MudSelectItem>
+                        <MudSelectItem Value="@("Medium")">Medium</MudSelectItem>
+                        <MudSelectItem Value="@("Long")">Long</MudSelectItem>
+                    </MudSelect>
+
+                    <MudTextField Label="Custom Prompt (Optional)"
+                                  @bind-Value="_request.CustomPrompt"
+                                  Lines="3"
+                                  Class="md:col-span-2"
+                                  FullWidth="true"
+                                  Placeholder="e.g., Include real-world examples, storytelling tone, or add comparisons with 2024 trends." />
+
+                    <div class="md:col-span-2 flex justify-between items-center mt-2">
+                        <MudSwitch T="bool" @bind-Checked="_request.IncludeImage" Color="Color.Primary">
+                            Include Cover Image
+                        </MudSwitch>
+                    </div>
+
+                    <div class="md:col-span-2 flex justify-end mt-6">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GenerateBlog" Disabled="_isLoading">
+                            @(_isLoading ? "Generating..." : "Generate Blog")
+                        </MudButton>
+                    </div>
+                </MudForm>
+            </MudPaper>
+        }
+        else
+        {
+            <MudContainer Style="margin-bottom:20px;">
+
+        <MudGrid Spacing="5">
+            <MudItem md="12">
+                <MudContainer Class="p-4 mb-3" Style="border-radius:10px;" >
+
+                    <MudGrid>
+                        <MudItem md="1">
+                            <MudContainer Style="display:flex;justify-content:center;align-items:center">
+                                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Default"
+                                               OnClick="changeState" Title="Back to Dashboard" />
+                            </MudContainer>
+                        </MudItem>
+                        <MudItem xs="12" sm="11">
+
+                            <MudTextField @bind-Value="_blog.Title" Style="font-family:'Satoshi', system-ui, sans-serif, sans-serif;font-weight:600" Typo="Typo.h3" Placeholder="Edit Blog Title" Variant="Variant.Text" AutoGrow FullWidth="true" />
+                        </MudItem>
+                        <MudItem xs="12" sm="12">
+                            <MudStack Row="true">
+                                
+                               
+
+                                <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                                    <MudText Typo="Typo.subtitle1" Class="mx-4">
+                                        <strong>Reading Time:</strong> @(_blog?.Estimated_Read_Time) min
+                                    </MudText>
+                                </MudHidden>
+                                <MudSpacer/>
+                                @* <MudButton OnClick="@gotoblog" >Preview</MudButton> *@
+                               
+                            </MudStack>
+                        </MudItem>
+                    </MudGrid>
+                </MudContainer>
+            </MudItem>
+            <!-- Quill Editor -->
+            <MudItem xs="12" md="7">
+                <MudPaper Class="p-4" Style="border-radius:10px;padding:10px;height:100%;background-color:#EDE9FE" Elevation="4">
+                    @* <MudPaper>
+                        <div id="@EditorId" style="height:500px;width:100%;background:rgba(233, 230, 245,.5);"></div>
+                    </MudPaper> *@
+                    <MudTextField Label="Content (HTML)"
+                              @bind-Value="_blog.Content"
+                              Lines="27"
+                              FullWidth="true"
+                              Class="mb-4 font-mono text-sm" />
+                </MudPaper>
+            </MudItem>
+
+            <!-- SEO Section -->
+            <MudItem xs="12" md="5">
+                <MudPaper Class="p-4" Elevation="4" Style="border-radius:10px;padding:10px;background-color:#EDE9FE">
+                    <MudStack Style="padding:0">
+                        <MudContainer Style="height:250px;padding:0">
+                            <MudImage Src="@_blog.Image_Url" style="width:100%;height:100%;border-radius:12px;"></MudImage>
+                        </MudContainer>
+
+                        <MudGrid Spacing="2">
+                            
+                            
+
+                            <MudItem md="12">
+                                <MudTextField T="string" class="mb-4" @bind-text="_blog.Slug" Label="Slug" Placeholder="Slug For SEO" Variant="Variant.Outlined" AutoGrow />
+                <MudTextField Label="Meta Description" @bind-Value="_blog.Meta_Description" Variant="Variant.Outlined" FullWidth="true" Lines="2" Class="mb-4" />
+                            </MudItem>
+                            <MudItem md="12">
+                                                <MudTextField Label="Category" @bind-Value="_blog.Category" Variant="Variant.Outlined" FullWidth="true" Class="mb-4" />
+
+                            </MudItem>
+
+                            <MudItem md="12">
+                                @foreach(var c in _blog.Tags)
+                                {
+                                    <MudChip T="string" Class="m-1" Color="Color.Dark" Variant="Variant.Outlined">@c</MudChip>
+                                }
+
+
+                            </MudItem>
+                        </MudGrid>
+                    </MudStack>  
+                </MudPaper>
+            </MudItem>
+            <MudItem md="12">
+                <!-- 🔴 ACTION BUTTONS -->
+                <MudPaper Class="p-3 mt-4" Elevation="4" Style="padding:10px;background-color:white;border-radius:10px;border:1px solid #3f51b5;">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveBlog">
+                        💾 Save Blog
+                    </MudButton>
+                    @* <MudStack Row="true" Spacing="2">
+                        <MudGrid>
+                            <MudItem md="7">
+                                <MudContainer>
+                                    <MudTextField @bind-Value="Comments" Label="Comments for Author" Placeholder="Write Comments / Reason for rejection here... " Variant="Variant.Outlined" Lines="3" />
+                                </MudContainer>
+                            </MudItem>
+                            <MudItem md="5">
+                                <MudStack Spacing="3" Class="mt-2" >
+                                    <MudStack Row="true">
+                                        <MudButton Variant="Variant.Outlined" FullWidth="true" Style="border-radius:16px;" OnClick="UpdateBlog">Update</MudButton>
+                                        <MudButton Variant="Variant.Outlined" Color="Color.Warning" Style="border-radius:16px;" FullWidth="true" OnClick="ShowRevisionDialog">Send Revision</MudButton>
+                                    </MudStack>
+                                    <MudStack Row="true">
+                                        <MudButton Variant="Variant.Filled" Color="Color.Success" FullWidth="true" Style="border-radius:16px;" OnClick="ApproveBlog">Approve</MudButton>
+                                        <MudButton Variant="Variant.Filled" Color="Color.Error" FullWidth="true" Style="border-radius:16px;" OnClick="RejectBlog"> Reject</MudButton>
+                                    </MudStack>
+                                </MudStack>
+                            </MudItem>
+                        </MudGrid>
+
+
+                    </MudStack> *@
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+    </MudContainer>
+
+            <!-- ===================== GENERATED BLOG SECTION ===================== -->
+            @* <MudPaper Class="p-8 rounded-2xl shadow-lg bg-gray-50 border">
+                <h2 class="text-2xl font-semibold mb-4 text-center">✍️ Edit & Review Your AI Blog</h2>
+
+
+                <MudTextField Label="Cover Image URL" @bind-Value="_blog.Image_Url" FullWidth="true" Class="mb-4" />
+
+                @if (!string.IsNullOrEmpty(_blog.Image_Url))
+                {
+                    <img src="@_blog.Image_Url" alt="Cover Image" class="rounded-xl mb-6 shadow-lg" width="100%" />
+                }
+
+               
+
+                <div class="flex justify-between mt-6">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="GoBack">
+                        ⬅ Back to Input
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveBlog">
+                        💾 Save Blog
+                    </MudButton>
+                </div>
+            </MudPaper> *@
+
+            @* <MudPaper Class="mt-10 p-8 rounded-2xl shadow-md bg-white">
+            <h2 class="text-2xl font-bold mb-2">@_blog.Title</h2>
+            <p class="text-gray-600 italic mb-4">@_blog.Meta_Description</p>
+
+            @if (!string.IsNullOrEmpty(_blog.Image_Url))
+            {
+                <img src="@_blog.Image_Url" alt="@_blog.Title" class="rounded-xl mb-4 shadow" width="100%" />
+            }
+
+            <div class="prose max-w-none" style="color:#2c2c2c;">
+                @((MarkupString)_blog.Content)
+            </div>
+
+            <div class="mt-6 flex justify-between text-sm text-gray-600">
+                <span>📁 Category: @_blog.Category</span>
+                <span>🕒 Read Time: @_blog.Estimated_Read_Time</span>
+            </div>
+        </MudPaper> *@
+        }
+        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="changeState">change</MudButton>
+    }
+</MudContainer>
+
+@code {
+    private MudForm _form;
+    private GeminiRequest _request = new();
+    private GeminiBlogOutput? _blog;
+    private bool _isLoading = false;
+    private bool _showGenerated = false;
+    private string _selectedLength = "";
+    private bool state = false;
+    private string Content = "";
+    private async Task GenerateBlog()
+    {
+        await _form.Validate();
+        _isLoading = true;
+        _showGenerated = false;
+        StateHasChanged();
+
+        _request.Length = _selectedLength switch
+        {
+            "Short" => "Short (300-500 words)",
+            "Medium" => "Medium (600-900 words)",
+            "Long" => "Long (1000+ words)",
+            _ => "Medium (600-900 words)"
+        };
+
+        var result = await GeminiService.GenerateBlogAsync(_request);
+        _blog = result;
+        Content =_blog.Content;
+        if (_blog != null)
+        {
+            // Ensure image always exists
+            if (string.IsNullOrWhiteSpace(_blog.Image_Url))
+                _blog.Image_Url = $"https://picsum.photos/seed/{Uri.EscapeDataString(_blog.Category ?? _request.Title)}/1200/600";
+        }
+
+        _isLoading = false;
+        _showGenerated = true;
+        StateHasChanged();
+    }
+    void changeState()
+    {
+        state = !state;
+    }
+    private void GoBack()
+    {
+        _showGenerated = false;
+        _blog = null;
+        StateHasChanged();
+    }
+
+    private async Task SaveBlog()
+{
+    
+
+    var aiBlog = new AIBlogDto
+    {
+        Title = _blog.Title,
+        Slug = _blog.Slug,
+        Content = _blog.Content,
+        MetaDescription = _blog.Meta_Description,
+        Category = _blog.Category,
+        Tags = _blog.Tags?.ToList() ?? new List<string>(),
+        CoverImageUrl = _blog.Image_Url,
+        ReadingTime = _blog.Estimated_Read_Time
+    };
+
+    var (success, message) = await GeminiService.SaveAIBlogAsync(aiBlog);
+
+    if (success)
+        Snackbar.Add($"✅ {message}", Severity.Success);
+    else
+        Snackbar.Add($"❌ {message}", Severity.Error);
+}
+
+}
+<style>
+    body {
+        background: #FBFAFF;
+    }
+</style>

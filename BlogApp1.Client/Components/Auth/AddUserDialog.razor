@@ -1,0 +1,84 @@
+﻿@using BlogApp1.Shared
+@using ASService.Services
+@inject AuthService ASService
+<MudDialog>
+    <DialogContent>
+        <MudContainer Style="max-width:600px;min-width:400px;">
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h5" GutterBottom>Add New User</MudText>
+
+                <MudTextField @bind-Value="_name" Label="Username" Variant="Variant.Outlined" Required="true" />
+                <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined" Required="true" />
+                <MudTextField @bind-Value="_password" Label="Password" InputType="InputType.Password" Variant="Variant.Outlined" Required="true" />
+                <MudTextField @bind-Value="_confirmPassword" Label="Confirm Password" InputType="InputType.Password" Variant="Variant.Outlined" Required="true" />
+                <MudSelect T="string" @bind-Value="selectedRole" Label="Role" Variant="Variant.Outlined" Required="true">
+                    <MudSelectItem Value="@("reader")">Reader</MudSelectItem>
+                    <MudSelectItem Value="@("author")">Author</MudSelectItem>
+                    <MudSelectItem Value="@("editor")">Editor</MudSelectItem>
+                    <MudSelectItem Value="@("admin")">Admin</MudSelectItem>
+                </MudSelect>
+            </MudStack>
+        </MudContainer>
+    </DialogContent>
+
+    <DialogActions >
+        <MudStack Row="true" dir="rtl" style="padding:15px;">
+            <MudButton Variant="Variant.Filled" Style="border-radius:16px;background-color:#3f51b5;color:white;" OnClick="Submit">Add User</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Error" Style="border-radius:16px;" OnClick="Cancel">Cancel</MudButton>
+        </MudStack>
+
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Inject] IDialogService DialogService { get; set; }
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+
+    private string? _name;
+    private string? _email;
+    private string? _password;
+    private string? _confirmPassword;
+    private string selectedRole = "reader";
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit()
+    {
+        HandleRegister();
+        
+    }
+    private async Task HandleRegister()
+    {
+        if (_password != _confirmPassword)
+        {
+            Snackbar.Add("Passwords do not match.", Severity.Error);
+            return;
+        }
+        List<string> role = new() { "Reader" };
+        if (selectedRole!="reader")
+        {
+            role.Add(selectedRole);
+        }
+
+        SignupModel model = new SignupModel
+        {
+            Name = _name,
+            Email = _email,
+            Password = _password,
+            Role = role
+        };
+        bool success = await ASService.RegisterAsync(model);
+
+        if (success)
+        {
+            Snackbar.Add("Registration successful!", Severity.Success);
+            MudDialog.Close();
+        }
+        else
+        {
+            Snackbar.Add("Registration failed. Please try again.", Severity.Error);
+        }
+        MudDialog.Close();
+    }
+}

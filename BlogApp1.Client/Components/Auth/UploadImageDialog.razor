@@ -1,0 +1,81 @@
+﻿@using MudBlazor
+@inject BlogApp1.Client.Services.ImageApiService ImageApiService
+
+<MudDialog>
+    <DialogContent>
+
+        <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                       Accept=".png,.jpg,.jpeg"
+                       MaximumFileCount="1"
+                       @ref="_fileUpload"
+                       OnFilesChanged="OnInputFileChanged"
+                       InputClass="file-upload-input"
+                       Hidden="false">
+            <ActivatorContent>
+                <MudPaper Class="@_dragClass" Style="width: 300px; height: 200px;" Outlined>
+                    <MudText Align="Align.Center">
+                        Drag and drop image here<br />or click to select
+                    </MudText>
+                    @if (file is not null)
+                    {
+                        <MudChip T="string" Color="Color.Dark" Text="@file.Name" Style="margin-top:8px;" />
+                    }
+                </MudPaper>
+            </ActivatorContent>
+        </MudFileUpload>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Style="border-radius:16px;background-color:#3f51b5;color:white;" Disabled="file is null" OnClick="Upload" Variant="Variant.Filled">
+            Upload
+        </MudButton>
+        <MudButton Color="Color.Error" Style="border-radius:16px;" OnClick="Cancel" Variant="Variant.Outlined">
+            Cancel
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .file-upload-input {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 10;
+        opacity: 0;
+    }
+
+    .drag-highlight {
+        border-color: #1976d2 !important;
+        background: #e3f2fd;
+    }
+</style>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private IBrowserFile file;
+    private MudFileUpload<IReadOnlyList<IBrowserFile>> _fileUpload;
+    private string _dragClass = "relative rounded-lg border-2 border-dashed pa-4 mud-width-full mud-height-full";
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        file = e.GetMultipleFiles(1)
+                .FirstOrDefault(f => f.ContentType.StartsWith("image/"));
+        ClearDragClass();
+    }
+
+    private async Task Upload()
+    {
+        if (file is not null)
+        {
+            var url = await ImageApiService.UploadImageAsync(file);
+            MudDialog.Close(DialogResult.Ok(url)); // ✅ Return uploaded URL to caller
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void SetDragClass() => _dragClass = "relative rounded-lg border-2 border-dashed pa-4 mud-width-full mud-height-full drag-highlight";
+    private void ClearDragClass() => _dragClass = "relative rounded-lg border-2 border-dashed pa-4 mud-width-full mud-height-full";
+}

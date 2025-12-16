@@ -1,0 +1,164 @@
+﻿@using MudBlazor
+@using BlogApp1.Shared
+@using ASService.Services
+@inject AuthService ASService
+<MudDialog Class="dialog-overbox">
+    <DialogContent>
+        <MudContainer Elevation="0" Class="register-container center-container">
+
+            <MudText GutterBottom="true" Align="Align.Center" Style="font-size:30px; font-weight:550;color:#361d32;">Create Medium</MudText>
+
+            <MudTextField @bind-Value="_name"
+                          Label="First Name"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          Class="register-input"/>
+
+            <MudTextField @bind-Value="_email"
+                          Label="Email"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          Class="register-input" />
+
+            <MudTextField @bind-Value="_password"
+                          Label="Password"
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Password"
+                          Required="true"
+                          Class="register-input" />
+
+            <MudTextField @bind-Value="_confirmPassword"
+                          Label="Confirm Password"
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Password"
+                          Required="true"
+                          Class="register-input" />
+
+            <MudCheckBox T="bool" @bind-value="_isAuthor" Label="Do you want to be an Author?" Style="padding-left:0;"/>
+
+            <MudButton OnClick="HandleRegister"
+                       Variant="Variant.Filled"
+                       FullWidth="true"
+                       Class="register-button">
+                Create Account
+            </MudButton>
+
+            <MudText Align="Align.Center" Class="mt-3">
+                Already have an account? 
+                <MudLink OnClick="OpenLoginDialog">
+                    Login
+                </MudLink>
+            </MudText>
+        </MudContainer>
+    </DialogContent>
+    
+</MudDialog>
+    
+
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] IDialogService DialogService { get; set; }
+    private string? _name;
+    private string? _email;
+    private string? _password;
+    private string? _confirmPassword;
+    private bool _isAuthor = false;
+
+    private async Task HandleRegister()
+    {
+        if (_password != _confirmPassword)
+        {
+            Snackbar.Add("Passwords do not match.", Severity.Error);
+            return;
+        }
+        List<string> role = new() { "Reader" };
+        Console.WriteLine(_isAuthor);
+        if(_isAuthor)
+        {
+            role.Add("Author");
+        }
+
+        SignupModel model = new SignupModel
+        {
+            Name = _name,
+            Email = _email,
+            Password = _password,
+            Role = role
+        };
+        bool success = await ASService.RegisterAsync(model);
+
+        if (success)
+        {
+            Snackbar.Add("Registration successful!", Severity.Success);
+            MudDialog.Close();
+        }
+        else
+        {
+            Snackbar.Add("Registration failed. Please try again.", Severity.Error);
+        }
+    }
+
+    private void OpenLoginDialog()
+    {
+        MudDialog.Close();
+        var parameters = new DialogParameters();
+        var options = new DialogOptions()
+        {
+            MaxWidth = MaxWidth.Small,
+            BackdropClick = true,
+            CloseButton = true,
+            BackgroundClass = "dialog-backdrop-blur"
+        };
+        DialogService.Show<LoginDialog>("", parameters, options);
+    }
+    
+    private async void CloseLoginDialog()
+    {
+        MudDialog.Close();
+        
+    }
+
+}
+<style>
+    
+    .center-container {
+        background-color: #f2e0dc;
+        width:500px;
+    }
+
+    .register-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        padding-left: 1.5rem;
+        padding-bottom: 1.5rem;
+        padding-right: 1.5rem;
+        
+    }
+
+    .dialog-overbox {
+        border-top: 5px solid #361d32;
+        background-color: #f2e0dc;
+    }
+    .register-input {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+    }
+
+    .register-button {
+        padding: 0.75rem;
+        font-weight: bold;
+        border-radius: 16px;
+        color: white;
+        background-color: #543c52;
+    }
+    .register-button:hover{
+            background-color: #543c52;
+    }
+    .mud-input.mud-input-outlined {
+        background-color: #f1e8e6;
+    }
+
+</style>
